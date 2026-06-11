@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>무인 차량 키 보관함 키오스크 도입 제안서</title>
+  <link rel="stylesheet" href="index.css">
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+</head>
+<body>
+
+  <div id="gate-overlay">
+    <div class="gate-box">
+      <div class="gate-logo">KEY <span>LOCKER</span></div>
+      <p class="gate-title">보호된 제안서</p>
+      <p class="gate-desc">열람하려면 비밀번호를 입력하세요.</p>
+      <form id="gate-form" autocomplete="off">
+        <input id="gate-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" aria-label="비밀번호">
+        <button type="submit" class="gate-btn">입장</button>
+      </form>
+      <p id="gate-error" class="gate-error" role="alert"></p>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-text"><span>KEY</span> <span>LOCKER</span></div>
+      <div class="logo-badge">VEHICLE KEY HUB</div>
+      <span style="font-size:1.4rem;color:#64748B;font-family:var(--font-display);margin-left:0.5rem;border-left:1px solid var(--border-color);padding-left:0.75rem;font-weight:800;">by AICube</span>
+    </div>
+    <div class="mode-toggle">
+      <button class="toggle-btn active" id="btn-mode-pitch">제안 발표 슬라이드</button>
+      <button class="toggle-btn" id="btn-mode-dashboard">실시간 키오스크 데모</button>
+    </div>
+    <div class="nav-controls" id="slide-nav-controls">
+      <button class="nav-btn" id="btn-prev" aria-label="이전"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+      <div class="slide-indicator" id="slide-indicator">1 / 7</div>
+      <button class="nav-btn" id="btn-next" aria-label="다음"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+    </div>
+  </header>
+
+  <main>
+    <div class="slides-wrapper" id="pitch-container">
+      <div class="slide-deck">
+
+        <!-- SLIDE 1 -->
+        <div class="slide active" id="slide-1">
+          <div class="slide-info">
+            <span class="hero-tag">무인 차량 키 관리 인프라</span>
+            <span class="slide-number">SLIDE 01 / INTRODUCTION</span>
+            <h1 class="slide-title">키 관리의 번거로움을 없애고,<br><strong>고객 경험을 높이다</strong></h1>
+            <p class="slide-description">
+              21.5인치 터치 디스플레이와 20구 보관함을 갖춘 스탠드형 무인 키오스크로
+              차량 대여·정비 현장의 키 인수인계를 24시간 자동화합니다.
+              클라우드 API 연동과 전자락·센서 기반 보관함 제어로 확장 가능한 키 관리 인프라를 제안합니다.
+            </p>
+            <div style="font-size:0.95rem;color:#94A3B8;">
+              <span style="color:var(--primary-blue);font-weight:700;">제안사:</span>
+              <span style="color:#fff;font-weight:600;"> 에이아이큐브 (AICube)</span>
+            </div>
+            <div class="hero-btns">
+              <button class="btn-primary" id="btn-start-pitch">제안서 시작하기
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </button>
+              <button class="btn-secondary" id="btn-jump-db">실시간 데모 보기</button>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="visual-placeholder">
+              <svg viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="240" fill="#0a0e1a"/>
+                <rect x="140" y="20" width="120" height="80" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+                <text x="200" y="55" text-anchor="middle" fill="#3b82f6" font-size="10" font-family="sans-serif">21.5" TOUCH</text>
+                <text x="200" y="75" text-anchor="middle" fill="#94a3b8" font-size="8">KEY LOCKER KIOSK</text>
+                <g id="locker-preview">
+                  <rect x="60" y="110" width="280" height="110" rx="6" fill="#111827" stroke="#334155"/>
+                  <g fill="#1e293b" stroke="#3b82f6" stroke-width="0.5">
+                    <rect x="70" y="120" width="48" height="40" rx="2"/><rect x="126" y="120" width="48" height="40" rx="2"/>
+                    <rect x="182" y="120" width="48" height="40" rx="2"/><rect x="238" y="120" width="48" height="40" rx="2"/>
+                    <rect x="294" y="120" width="36" height="40" rx="2"/>
+                    <rect x="70" y="168" width="48" height="40" rx="2"/><rect x="126" y="168" width="48" height="40" rx="2"/>
+                    <rect x="182" y="168" width="48" height="40" rx="2"/><rect x="238" y="168" width="48" height="40" rx="2"/>
+                    <rect x="294" y="168" width="36" height="40" rx="2"/>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">핵심 도입 사양</div>
+              <p style="font-size:0.9rem;color:#94A3B8;line-height:1.55;">
+                21.5인치 FHD 터치 × 20구 개별 전자락 보관함 × HTTPS 클라우드 API 연동.
+                RS485 IO보드 또는 USB 릴레이보드로 보관함을 개별 제어합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 2 -->
+        <div class="slide" id="slide-2">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 02 / PAIN POINTS</span>
+            <h2 class="slide-title">키 관리의 병목,<br><strong>왜 자동화가 필요한가?</strong></h2>
+            <p class="slide-description">
+              차량 대여·정비에서는 키 인수인계가 늘 병목입니다. 무인 시간에는 키를 맡길 방법이 없고,
+              바쁜 시간에는 열쇠 찾는 대기가 길어집니다. 수동 관리는 분실 위험과 관리 공수를 동시에 키웁니다.
+            </p>
+            <div class="slide-features">
+              <div class="feature-item">
+                <div class="feature-icon">!</div>
+                <div class="feature-text"><h4>인수인계 지연</h4><p>직원·고객 동선이 겹치며 평균 대기 시간이 길어집니다.</p></div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">!</div>
+                <div class="feature-text"><h4>분실·오류 위험</h4><p>종이 기록과 수동 보관은 실수와 분실을 항상 동반합니다.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">서비스 센터 혼잡도 시뮬레이터</div>
+              <div class="slider-labels">
+                <span>한산 (오전)</span>
+                <span id="congestion-label" style="color:var(--accent-cyan);font-weight:bold;">보통 (점심)</span>
+                <span>피크 (퇴근)</span>
+              </div>
+              <input type="range" min="0" max="100" value="45" class="custom-range" id="congestion-slider">
+              <div class="metrics-grid">
+                <div class="metric-card" id="wait-card">
+                  <div class="metric-label">평균 대기 시간</div>
+                  <div class="metric-value blue" id="val-wait">8분</div>
+                </div>
+                <div class="metric-card" id="loss-card">
+                  <div class="metric-label">키 분실 위험</div>
+                  <div class="metric-value cyan" id="val-loss">중간</div>
+                </div>
+                <div class="metric-card" id="staff-card">
+                  <div class="metric-label">관리 공수</div>
+                  <div class="metric-value red" id="val-staff">높음</div>
+                </div>
+              </div>
+            </div>
+            <div class="visual-placeholder">
+              <svg viewBox="0 0 400 200" fill="none"><rect width="400" height="200" fill="#0a0e1a"/>
+                <rect x="20" y="20" width="170" height="160" rx="8" fill="#1a0a0a" stroke="#ef4444" stroke-width="1" opacity="0.6"/>
+                <text x="105" y="50" text-anchor="middle" fill="#ef4444" font-size="9">수동 관리</text>
+                <text x="105" y="100" text-anchor="middle" fill="#94a3b8" font-size="8">종이 기록 · 대기열</text>
+                <rect x="210" y="20" width="170" height="160" rx="8" fill="#0a1a2e" stroke="#3b82f6" stroke-width="1"/>
+                <text x="295" y="50" text-anchor="middle" fill="#3b82f6" font-size="9">무인 키오스크</text>
+                <text x="295" y="100" text-anchor="middle" fill="#94a3b8" font-size="8">차량번호 입력 · 즉시 개방</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 3 -->
+        <div class="slide" id="slide-3">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 03 / SYSTEM ARCHITECTURE</span>
+            <h2 class="slide-title">보관함 제어와<br><strong>클라우드 서버 연동 구조</strong></h2>
+            <p class="slide-description">
+              키오스크는 차량번호·비밀번호 입력 후 RS485/USB IO보드로 20개 보관함을 개별 제어합니다.
+              센서 데이터와 이용 이력은 HTTPS REST API / WebSocket으로 클라우드에 전송되며,
+              관리자 웹 대시보드에서 실시간 모니터링합니다.
+            </p>
+            <p style="font-size:0.9rem;color:#94A3B8;">각 노드를 클릭하여 데이터 흐름을 확인하세요.</p>
+            <div class="node-list">
+              <div class="node-item selected" data-node="ui">
+                <div><div class="node-name">1. 21.5" 터치 키오스크 UI</div><div class="node-desc">차량번호·PIN 입력, 단계별 안내</div></div>
+                <div class="node-data-pill">TOUCH INPUT</div>
+              </div>
+              <div class="node-item" data-node="io">
+                <div><div class="node-name">2. RS485 / USB IO 보드</div><div class="node-desc">20구 전자락 개별 제어</div></div>
+                <div class="node-data-pill">GPIO / RS485</div>
+              </div>
+              <div class="node-item" data-node="sensor">
+                <div><div class="node-name">3. 도어 센서</div><div class="node-desc">열림/닫힘·미닫힘 감지</div></div>
+                <div class="node-data-pill">SENSOR DATA</div>
+              </div>
+              <div class="node-item" data-node="api">
+                <div><div class="node-name">4. 클라우드 API 서버</div><div class="node-desc">TLS 인증, 배정, 이력 저장</div></div>
+                <div class="node-data-pill">HTTPS / WSS</div>
+              </div>
+              <div class="node-item" data-node="admin">
+                <div><div class="node-name">5. 관리자 웹 대시보드</div><div class="node-desc">상태 모니터링·원격 제어</div></div>
+                <div class="node-data-pill">WEB DASHBOARD</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">시스템 데이터 플로우</div>
+              <svg width="100%" height="180" viewBox="0 0 360 180" id="arch-svg">
+                <defs><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                <path d="M50,90 L90,90" stroke="#1e293b" stroke-width="3"/><path id="flow-1" d="M50,90 L90,90" stroke="#3b82f6" stroke-width="2" class="flow-path" style="display:none"/>
+                <path d="M130,90 L170,90" stroke="#1e293b" stroke-width="3"/><path id="flow-2" d="M130,90 L170,90" stroke="#06b6d4" stroke-width="2" class="flow-path" style="display:none"/>
+                <path d="M210,90 L250,90" stroke="#1e293b" stroke-width="3"/><path id="flow-3" d="M210,90 L250,90" stroke="#3b82f6" stroke-width="2" class="flow-path" style="display:none"/>
+                <path d="M290,90 L330,90" stroke="#1e293b" stroke-width="3"/><path id="flow-4" d="M290,90 L330,90" stroke="#06b6d4" stroke-width="2" class="flow-path" style="display:none"/>
+                <rect x="10" y="65" width="40" height="50" rx="6" fill="#1e293b" stroke="#3b82f6" id="svg-ui"/><text x="30" y="95" text-anchor="middle" fill="#94a3b8" font-size="7">UI</text>
+                <rect x="90" y="65" width="40" height="50" rx="6" fill="#1e293b" stroke="#334155" id="svg-io"/><text x="110" y="95" text-anchor="middle" fill="#94a3b8" font-size="7">IO</text>
+                <rect x="170" y="65" width="40" height="50" rx="6" fill="#1e293b" stroke="#334155" id="svg-sensor"/><text x="190" y="95" text-anchor="middle" fill="#94a3b8" font-size="7">SENSOR</text>
+                <rect x="250" y="65" width="40" height="50" rx="6" fill="#1e293b" stroke="#334155" id="svg-api"/><text x="270" y="95" text-anchor="middle" fill="#94a3b8" font-size="7">API</text>
+                <rect x="330" y="65" width="40" height="50" rx="6" fill="#1e293b" stroke="#334155" id="svg-admin"/><text x="350" y="95" text-anchor="middle" fill="#94a3b8" font-size="7">ADMIN</text>
+              </svg>
+            </div>
+            <div class="visual-placeholder">
+              <svg viewBox="0 0 400 200" fill="none"><rect width="400" height="200" fill="#0a0e1a"/>
+                <circle cx="200" cy="100" r="60" fill="none" stroke="#3b82f6" stroke-width="1" opacity="0.3"/>
+                <text x="200" y="105" text-anchor="middle" fill="#06b6d4" font-size="10">CLOUD API</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 4 -->
+        <div class="slide" id="slide-4">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 04 / UI/UX SCENARIO</span>
+            <h2 class="slide-title">차량키 맡기기·찾기<br><strong>시나리오 체험</strong></h2>
+            <p class="slide-description">
+              고객은 차량번호만으로 빈 보관함에 키를 맡기고, 정비 완료 후 문자로 받은 PIN으로 키를 찾습니다.
+              정비사는 차량번호 검색으로 보관함을 열어 작업 후 다시 보관할 수 있습니다.
+            </p>
+            <div class="slide-features">
+              <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text"><h4>단계별 안내</h4><p>상단 진행 표시와 큰 버튼으로 초보자도 쉽게 이용</p></div></div>
+              <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text"><h4>상태 동기화</h4><p>키오스크·대시보드 동일 색상 규칙 (초록·주황·빨강)</p></div></div>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">시나리오 테스트</div>
+              <div class="scenario-tabs">
+                <button class="btn-preset active" id="btn-scenario-deposit">차량키 맡기기</button>
+                <button class="btn-preset" id="btn-scenario-pickup">차량키 찾기</button>
+              </div>
+              <div class="keypad-display" id="slide-keypad-display">___ ___</div>
+              <div class="keypad" id="slide-keypad">
+                <button class="keypad-btn" data-key="1">1</button><button class="keypad-btn" data-key="2">2</button><button class="keypad-btn" data-key="3">3</button>
+                <button class="keypad-btn" data-key="4">4</button><button class="keypad-btn" data-key="5">5</button><button class="keypad-btn" data-key="6">6</button>
+                <button class="keypad-btn" data-key="7">7</button><button class="keypad-btn" data-key="8">8</button><button class="keypad-btn" data-key="9">9</button>
+                <button class="keypad-btn" data-key="del">⌫</button><button class="keypad-btn" data-key="0">0</button><button class="keypad-btn" data-key="ok">확인</button>
+              </div>
+              <div class="scenario-steps" id="scenario-steps" style="margin-top:0.75rem;"></div>
+              <button class="btn-primary" id="btn-run-scenario" style="margin-top:0.75rem;padding:0.5rem 1rem;font-size:0.85rem;width:100%;justify-content:center;">시뮬레이션 시작</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 5 -->
+        <div class="slide" id="slide-5">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 05 / COMPARISON</span>
+            <h2 class="slide-title">수동 관리 vs.<br><strong>자동화 키오스크</strong></h2>
+            <p class="slide-description">
+              무인 키오스크는 전자락과 센서로 문 열림마다 로그를 남기고, 서버에서 상태를 실시간 관리합니다.
+              차량번호와 PIN만으로 키를 찾을 수 있어 대기 시간이 크게 줄어듭니다.
+            </p>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">운영 방식 비교</div>
+              <div class="comparison-grid">
+                <div class="comp-card manual">
+                  <div class="comp-title">수동 키 관리</div>
+                  <ul class="comp-list">
+                    <li class="bad">종이 기록 · 분실 위험</li>
+                    <li class="bad">평균 대기 10~15분</li>
+                    <li class="bad">무인 시간 서비스 불가</li>
+                    <li class="bad">관리자 상주 필요</li>
+                  </ul>
+                </div>
+                <div class="comp-card auto">
+                  <div class="comp-title">무인 키오스크</div>
+                  <ul class="comp-list">
+                    <li class="good">디지털 로그 · 전자락</li>
+                    <li class="good">즉시 개방 (1분 이내)</li>
+                    <li class="good">24시간 무인 운영</li>
+                    <li class="good">원격 모니터링·제어</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="visual-placeholder">
+              <svg viewBox="0 0 400 180" fill="none"><rect width="400" height="180" fill="#0a0e1a"/>
+                <text x="100" y="90" text-anchor="middle" fill="#ef4444" font-size="24">✗</text>
+                <text x="100" y="120" text-anchor="middle" fill="#94a3b8" font-size="9">Manual</text>
+                <text x="300" y="90" text-anchor="middle" fill="#22c55e" font-size="24">✓</text>
+                <text x="300" y="120" text-anchor="middle" fill="#94a3b8" font-size="9">Automated</text>
+                <line x1="200" y1="30" x2="200" y2="150" stroke="#334155"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 6 -->
+        <div class="slide" id="slide-6">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 06 / ROADMAP</span>
+            <h2 class="slide-title">시제품 PoC에서<br><strong>전국 확장까지</strong></h2>
+            <p class="slide-description">
+              1단계 시제품 PoC로 현장 검증 후, 2단계 40대 양산, 3단계 서비스센터·렌터카 업체 전국 확장을 제안합니다.
+            </p>
+            <div class="roadmap-timeline">
+              <div class="roadmap-phase active" data-phase="1">
+                <div class="phase-header">
+                  <span><span class="phase-number">1</span><span class="phase-title">1단계: 1대 시제품 & PoC</span></span>
+                  <span style="font-size:0.8rem;color:#94A3B8;">현 단계</span>
+                </div>
+                <div class="phase-details">
+                  <label class="detail-task"><input type="checkbox" checked disabled> UI/UX 프로토타입 검토</label>
+                  <label class="detail-task"><input type="checkbox" checked disabled> 키오스크 시나리오 시뮬레이션 검증</label>
+                  <label class="detail-task"><input type="checkbox" id="task-poc-1"> 하드웨어 시제품 제작</label>
+                  <label class="detail-task"><input type="checkbox" id="task-poc-2"> 현장 PoC 테스트</label>
+                </div>
+              </div>
+              <div class="roadmap-phase" data-phase="2">
+                <div class="phase-header">
+                  <span><span class="phase-number">2</span><span class="phase-title">2단계: 40대 양산</span></span>
+                  <span style="font-size:0.8rem;color:#94A3B8;">PoC 후</span>
+                </div>
+                <div class="phase-details">
+                  <label class="detail-task"><input type="checkbox" id="task-main-1"> API 서버 정식 연동</label>
+                  <label class="detail-task"><input type="checkbox" id="task-main-2"> 관리자 대시보드 고도화</label>
+                  <label class="detail-task"><input type="checkbox" id="task-main-3"> 40대 양산 및 배포</label>
+                </div>
+              </div>
+              <div class="roadmap-phase" data-phase="3">
+                <div class="phase-header">
+                  <span><span class="phase-number">3</span><span class="phase-title">3단계: 전국 서비스센터 확대</span></span>
+                  <span style="font-size:0.8rem;color:#94A3B8;">확장</span>
+                </div>
+                <div class="phase-details">
+                  <label class="detail-task"><input type="checkbox" id="task-ext-1"> 렌터카·정비 네트워크 확산</label>
+                  <label class="detail-task"><input type="checkbox" id="task-ext-2"> OTA 업데이트·다지점 통합 관리</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card" style="position:relative;">
+              <div class="card-title">프로젝트 진척률</div>
+              <div class="sys-label-group"><span>전체 태스크</span><span id="roadmap-progress-text">25%</span></div>
+              <div class="sys-bar-bg"><div class="sys-bar-fill" id="roadmap-progress-fill" style="width:25%;"></div></div>
+              <p style="font-size:0.85rem;color:#94A3B8;margin-top:0.75rem;">체크박스를 클릭하여 진척률을 시뮬레이션하세요.</p>
+            </div>
+            <div class="visual-placeholder">
+              <svg viewBox="0 0 400 120" fill="none"><rect width="400" height="120" fill="#0a0e1a"/>
+                <line x1="40" y1="60" x2="360" y2="60" stroke="#3b82f6" stroke-width="2"/>
+                <circle cx="80" cy="60" r="12" fill="#3b82f6"/><text x="80" y="90" text-anchor="middle" fill="#94a3b8" font-size="8">PoC</text>
+                <circle cx="200" cy="60" r="12" fill="#334155" stroke="#3b82f6"/><text x="200" y="90" text-anchor="middle" fill="#94a3b8" font-size="8">양산</text>
+                <circle cx="320" cy="60" r="12" fill="#334155" stroke="#3b82f6"/><text x="320" y="90" text-anchor="middle" fill="#94a3b8" font-size="8">확장</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLIDE 7 -->
+        <div class="slide" id="slide-7">
+          <div class="slide-info">
+            <span class="slide-number">SLIDE 07 / CONCLUSION</span>
+            <h2 class="slide-title">무인 키오스크가 가져올<br><strong>운영 혁신</strong></h2>
+            <p class="slide-description">
+              무인 키 보관함 키오스크는 단순 자동 장치가 아니라, 차량 서비스 운영 구조를 혁신하는 인프라입니다.
+              고객 편의, 직원 업무 효율, 관리자 원격 제어를 동시에 실현합니다.
+            </p>
+            <div class="hero-btns">
+              <button class="btn-primary" id="btn-conclusion-demo">키오스크 데모 검증
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+              </button>
+            </div>
+          </div>
+          <div class="slide-visual">
+            <div class="interactive-card benefit-cards" style="position:relative;">
+              <div class="card-title">이해관계자별 기대 효과</div>
+              <div class="benefit-card"><h4 style="color:var(--accent-cyan);">고객 만족도 향상</h4><p>24시간 키 보관·출고, 대기 시간 단축</p></div>
+              <div class="benefit-card"><h4 style="color:var(--primary-blue);">운영 효율성 증대</h4><p>키 관리 업무 감소, 원격 모니터링·장애 대응</p></div>
+              <div class="benefit-card"><h4 style="color:var(--accent-green);">브랜드 신뢰성 강화</h4><p>분실·오류 최소화, TLS·이중 인증 보안 설계</p></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Dashboard Demo -->
+    <div class="dashboard-container" id="dashboard-container">
+      <div class="col-12 demo-config-bar">
+        <div>
+          <div class="config-title">실시간 키 보관함 키오스크 데모</div>
+          <p class="config-subtitle">21.5" 터치 UI와 20구 보관함 관리 대시보드를 시뮬레이션합니다.</p>
+        </div>
+        <div class="config-right">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span style="font-size:0.8rem;color:#94A3B8;">자동 재생</span>
+            <label class="switch-toggle"><input type="checkbox" id="checkbox-autoplay"><span class="switch-slider"></span></label>
+          </div>
+          <select id="select-scenario" class="custom-select">
+            <option value="deposit">시나리오: 차량키 맡기기</option>
+            <option value="pickup">시나리오: 차량키 찾기</option>
+            <option value="technician">시나리오: 정비사 메뉴</option>
+          </select>
+          <button class="btn-secondary" id="btn-reset-demo" style="padding:0.5rem 1rem;font-size:0.85rem;">데모 리셋</button>
+        </div>
+      </div>
+
+      <div class="col-7 device-frame-container">
+        <div class="device-frame" id="device-frame">
+          <div class="device-screen">
+            <div class="screen-status-bar">
+              <div><span class="screen-logo">KeyLocker</span><span class="screen-badge">ONLINE</span></div>
+              <div id="screen-clock">--:--:--</div>
+            </div>
+            <div class="kiosk-body" id="kiosk-body">
+              <!-- Dynamic kiosk UI rendered by app.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-5 db-card">
+        <div>
+          <span class="db-card-title">관리자 대시보드 — 20구 보관함</span>
+          <span class="db-card-subtitle">실시간 열쇠함 상태 (초록:가능 · 주황:대여중 · 빨강:열림)</span>
+        </div>
+        <div class="locker-legend">
+          <span><span class="legend-dot gray"></span>EMPTY</span>
+          <span><span class="legend-dot green"></span>AVAILABLE</span>
+          <span><span class="legend-dot orange"></span>RENTED</span>
+          <span><span class="legend-dot red"></span>DOOR_OPEN</span>
+        </div>
+        <div class="locker-grid" id="locker-grid"></div>
+        <dl class="locker-detail" id="locker-detail">
+          <dt>선택 보관함</dt><dd id="detail-locker">—</dd>
+          <dt>상태</dt><dd id="detail-status">—</dd>
+          <dt>차량번호</dt><dd id="detail-plate">—</dd>
+        </dl>
+        <button class="btn-secondary" id="btn-test-door" style="padding:0.5rem;font-size:0.8rem;width:100%;">선택 함 도어 테스트 (원격)</button>
+        <div class="event-log-container" id="event-log-box">
+          <div class="log-entry"><span class="log-time">[--:--:--]</span> <span class="log-msg">KeyLocker 시스템 초기화 완료.</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      const GATE_PASSWORD = "4342";
+      const STORAGE_KEY = "keylocker_proposal_auth";
+      const overlay = document.getElementById("gate-overlay");
+      const form = document.getElementById("gate-form");
+      const input = document.getElementById("gate-input");
+      const errorEl = document.getElementById("gate-error");
+      function unlock(fire) {
+        overlay.classList.add("gate-hidden");
+        document.body.classList.remove("gate-locked");
+        if (fire && typeof window.va === "function") {
+          window.va("event", { name: "proposal_unlocked", data: {} });
+        }
+      }
+      if (sessionStorage.getItem(STORAGE_KEY) === "ok") { unlock(false); return; }
+      document.body.classList.add("gate-locked");
+      input.addEventListener("input", function () { input.value = input.value.replace(/[^0-9]/g, ""); });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (input.value === GATE_PASSWORD) {
+          sessionStorage.setItem(STORAGE_KEY, "ok");
+          errorEl.textContent = "";
+          unlock(true);
+        } else {
+          errorEl.textContent = "비밀번호가 올바르지 않습니다.";
+          input.value = "";
+          overlay.querySelector(".gate-box").classList.add("gate-shake");
+          setTimeout(function () { overlay.querySelector(".gate-box").classList.remove("gate-shake"); }, 400);
+        }
+      });
+    })();
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
