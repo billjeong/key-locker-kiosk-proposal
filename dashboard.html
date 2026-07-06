@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>무인 차량 키 보관함 키오스크 — 실시간 데모</title>
+  <meta name="description" content="무인 차량 키 보관함 키오스크의 21.5인치 터치 UI와 20구 보관함 관리 대시보드 시뮬레이션 데모.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="무인 차량 키 보관함 키오스크 — 실시간 데모">
+  <meta property="og:description" content="무인 차량 키 보관함 키오스크의 21.5인치 터치 UI와 20구 보관함 관리 대시보드 시뮬레이션 데모.">
+  <meta property="og:site_name" content="키 보관함 키오스크 제안">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="index.css">
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+</head>
+<body>
+
+  <div id="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+    <div class="gate-box">
+      <div class="gate-logo">KEY <span>LOCKER</span></div>
+      <p class="gate-title" id="gate-title">보호된 데모</p>
+      <p class="gate-desc">본 데모는 열람 권한이 부여된 담당자에게만 공개됩니다.<br>전송받은 비밀번호를 입력해 주십시오.</p>
+      <form id="gate-form" autocomplete="off">
+        <label for="gate-input" class="sr-only">4자리 비밀번호</label>
+        <input id="gate-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" aria-describedby="gate-error">
+        <button type="submit" class="gate-btn">입장</button>
+      </form>
+      <p id="gate-error" class="gate-error" role="alert" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-text"><span>KEY</span> <span>LOCKER</span></div>
+      <div class="logo-badge">VEHICLE KEY HUB</div>
+      <span class="logo-by">by AICube</span>
+    </div>
+    <a class="back-link" href="index.html">← 제안서 본문</a>
+  </header>
+
+  <main>
+    <div class="dashboard-container active" id="dashboard-container">
+      <div class="col-12 demo-config-bar">
+        <div>
+          <div class="config-title">실시간 키 보관함 키오스크 데모</div>
+          <p class="config-subtitle">21.5" 터치 UI와 20구 보관함 관리 대시보드를 시뮬레이션합니다.</p>
+        </div>
+        <div class="config-right">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span style="font-size:0.8rem;color:#94A3B8;">자동 재생</span>
+            <label class="switch-toggle"><input type="checkbox" id="checkbox-autoplay"><span class="switch-slider"></span></label>
+          </div>
+          <select id="select-scenario" class="custom-select" aria-label="데모 시나리오 선택">
+            <option value="deposit">시나리오: 차량키 맡기기</option>
+            <option value="pickup">시나리오: 차량키 찾기</option>
+            <option value="technician">시나리오: 정비사 메뉴</option>
+          </select>
+          <button class="btn-secondary" id="btn-reset-demo" style="padding:0.5rem 1rem;font-size:0.85rem;">데모 리셋</button>
+        </div>
+      </div>
+
+      <div class="col-7 device-frame-container">
+        <div class="device-frame" id="device-frame">
+          <div class="device-screen">
+            <div class="screen-status-bar">
+              <div><span class="screen-logo">KeyLocker</span><span class="screen-badge">ONLINE</span></div>
+              <div id="screen-clock">--:--:--</div>
+            </div>
+            <div class="kiosk-body" id="kiosk-body">
+              <!-- Dynamic kiosk UI rendered by app.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-5 db-card">
+        <div>
+          <span class="db-card-title">관리자 대시보드 — 20구 보관함</span>
+          <span class="db-card-subtitle">실시간 열쇠함 상태 (초록:가능 · 주황:대여중 · 빨강:열림)</span>
+        </div>
+        <div class="locker-legend">
+          <span><span class="legend-dot gray"></span>EMPTY</span>
+          <span><span class="legend-dot green"></span>AVAILABLE</span>
+          <span><span class="legend-dot orange"></span>RENTED</span>
+          <span><span class="legend-dot red"></span>DOOR_OPEN</span>
+        </div>
+        <div class="locker-grid" id="locker-grid"></div>
+        <dl class="locker-detail" id="locker-detail">
+          <dt>선택 보관함</dt><dd id="detail-locker">—</dd>
+          <dt>상태</dt><dd id="detail-status">—</dd>
+          <dt>차량번호</dt><dd id="detail-plate">—</dd>
+        </dl>
+        <button class="btn-secondary" id="btn-test-door" style="padding:0.5rem;font-size:0.8rem;width:100%;">선택 함 도어 테스트 (원격)</button>
+        <div class="event-log-container" id="event-log-box">
+          <div class="log-entry"><span class="log-time">[--:--:--]</span> <span class="log-msg">KeyLocker 시스템 초기화 완료.</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    (function () {
+      const GATE_PASSWORD = "4342";
+      const STORAGE_KEY = "keylocker_proposal_auth";
+      const overlay = document.getElementById("gate-overlay");
+      const form = document.getElementById("gate-form");
+      const input = document.getElementById("gate-input");
+      const errorEl = document.getElementById("gate-error");
+      function unlock(fire) {
+        overlay.classList.add("gate-hidden");
+        document.body.classList.remove("gate-locked");
+        const first = document.querySelector("main a, main button, header a");
+        if (fire && first) first.focus();
+        if (fire && typeof window.va === "function") {
+          window.va("event", { name: "proposal_unlocked", data: {} });
+        }
+      }
+      if (sessionStorage.getItem(STORAGE_KEY) === "ok") { unlock(false); return; }
+      document.body.classList.add("gate-locked");
+      setTimeout(function () { input.focus(); }, 100);
+      input.addEventListener("input", function () { input.value = input.value.replace(/[^0-9]/g, ""); });
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (input.value === GATE_PASSWORD) {
+          sessionStorage.setItem(STORAGE_KEY, "ok");
+          errorEl.textContent = "";
+          unlock(true);
+        } else {
+          errorEl.textContent = "비밀번호가 올바르지 않습니다.";
+          input.value = "";
+          input.focus();
+          overlay.querySelector(".gate-box").classList.add("gate-shake");
+          setTimeout(function () { overlay.querySelector(".gate-box").classList.remove("gate-shake"); }, 400);
+        }
+      });
+    })();
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
