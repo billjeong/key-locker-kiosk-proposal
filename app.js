@@ -1,159 +1,272 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  const TOTAL_LOCKERS = 20;
-  const MOCK_PLATES = ['12가3456', '34나7890', '56다1234', '78라5678'];
-
+  // ==========================================
+  // STATE MANAGEMENT & CABIN LOCKERS SEEDING
+  // ==========================================
   let currentSlide = 1;
   const totalSlides = 7;
-  let activeMode = 'pitch';
-  let selectedLockerId = null;
-  let clockInterval = null;
+  let activeMode = 'pitch'; // 'pitch' or 'dashboard'
+  let isDialogueRunning = false;
+  let dialogueTimeouts = [];
+  let signageDialogueInterval = null;
 
-  // Locker state store
+  // 20-compartment key locker model inside simulation
+  const TOTAL_LOCKERS = 20;
   const lockers = Array.from({ length: TOTAL_LOCKERS }, (_, i) => ({
     id: i + 1,
-    status: 'EMPTY',
+    status: 'AVAILABLE', // EMPTY, AVAILABLE, RENTED, DOOR_OPEN, DOOR_ERROR
     plate: null,
     pin: null
   }));
 
-  // Pre-seed some lockers for demo
-  function seedLockers() {
-    lockers[2] = { id: 3, status: 'RENTED', plate: '12가3456', pin: '4821' };
-    lockers[7] = { id: 8, status: 'AVAILABLE', plate: null, pin: null };
-    lockers[11] = { id: 12, status: 'RESERVED', plate: '34나7890', pin: '7392' };
-    lockers[15] = { id: 16, status: 'DOOR_OPEN', plate: '56다1234', pin: null };
+  // Initial seeding of lockers to look natural
+  function seedCabinetLockers() {
+    // Reset all to AVAILABLE
+    for (let i = 0; i < TOTAL_LOCKERS; i++) {
+      lockers[i] = { id: i + 1, status: 'AVAILABLE', plate: null, pin: null };
+    }
+    // Set some rented/empty for visual diversity
+    lockers[1] = { id: 2, status: 'RENTED', plate: '34나7890', pin: '7392' };
+    lockers[4] = { id: 5, status: 'EMPTY', plate: null, pin: null };
+    lockers[7] = { id: 8, status: 'RENTED', plate: '56다1234', pin: '1289' };
+    lockers[11] = { id: 12, status: 'EMPTY', plate: null, pin: null };
+    lockers[14] = { id: 15, status: 'RENTED', plate: '78라5678', pin: '9901' };
+    lockers[18] = { id: 19, status: 'AVAILABLE', plate: null, pin: null };
   }
-  seedLockers();
 
-  // DOM refs
+  // Render 20-locker grid in the Right Screen Panel
+  function renderCabinetLockerGrid() {
+    const container = document.getElementById('locker-grid-cabinet');
+    if (!container) return;
+    container.innerHTML = lockers.map(l => {
+      let statusClass = 'available';
+      let statusText = '가용';
+      if (l.status === 'EMPTY') { statusClass = 'empty'; statusText = '빈함'; }
+      else if (l.status === 'RENTED') { statusClass = 'rented'; statusText = '보관'; }
+      else if (l.status === 'DOOR_OPEN') { statusClass = 'door_open'; statusText = '열림'; }
+      else if (l.status === 'DOOR_ERROR') { statusClass = 'door_error'; statusText = '오류'; }
+      
+      return `
+        <div class="locker-cell-cabinet ${statusClass}" title="보관함 #${l.id} (${statusText})">
+          <span class="cell-num">${l.id}</span>
+          <span class="cell-status">${statusText}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ==========================================
+  // DOM ELEMENTS
+  // ==========================================
   const pitchContainer = document.getElementById('pitch-container');
   const dashboardContainer = document.getElementById('dashboard-container');
   const slideIndicator = document.getElementById('slide-indicator');
   const navControls = document.getElementById('slide-nav-controls');
-  const lockerGrid = document.getElementById('locker-grid');
-  const kioskBody = document.getElementById('kiosk-body');
-  const eventLogBox = document.getElementById('event-log-box');
-  const screenClock = document.getElementById('screen-clock');
+  
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const btnModePitch = document.getElementById('btn-mode-pitch');
+  const btnModeDashboard = document.getElementById('btn-mode-dashboard');
+  
+  const btnStartPitch = document.getElementById('btn-start-pitch');
+  const btnJumpDb = document.getElementById('btn-jump-db');
+  const btnConclusionDemo = document.getElementById('btn-conclusion-demo');
 
   // ==========================================
-  // SLIDE NAVIGATION
+  // SLIDE NAVIGATION LOGIC
   // ==========================================
   function updateSlideView() {
     for (let i = 1; i <= totalSlides; i++) {
       const slide = document.getElementById(`slide-${i}`);
-      if (slide) slide.classList.toggle('active', i === currentSlide);
+      if (slide) {
+        if (i === currentSlide) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      }
     }
-    slideIndicator.textContent = `${currentSlide} / ${totalSlides}`;
-    document.getElementById('btn-prev').disabled = currentSlide === 1;
-    document.getElementById('btn-next').disabled = currentSlide === totalSlides;
+    
+    if (slideIndicator) slideIndicator.textContent = `${currentSlide} / ${totalSlides}`;
+    if (btnPrev) btnPrev.disabled = currentSlide === 1;
+    if (btnNext) btnNext.disabled = currentSlide === totalSlides;
   }
 
-  document.getElementById('btn-next').addEventListener('click', () => { if (currentSlide < totalSlides) { currentSlide++; updateSlideView(); } });
-  document.getElementById('btn-prev').addEventListener('click', () => { if (currentSlide > 1) { currentSlide--; updateSlideView(); } });
-  document.getElementById('btn-start-pitch').addEventListener('click', () => { currentSlide = 2; updateSlideView(); });
-  document.getElementById('btn-jump-db').addEventListener('click', () => switchMode('dashboard'));
-  document.getElementById('btn-conclusion-demo').addEventListener('click', () => switchMode('dashboard'));
+  function nextSlide() {
+    if (currentSlide < totalSlides) {
+      currentSlide++;
+      updateSlideView();
+    }
+  }
 
+  function prevSlide() {
+    if (currentSlide > 1) {
+      currentSlide--;
+      updateSlideView();
+    }
+  }
+
+  if (btnNext) btnNext.addEventListener('click', nextSlide);
+  if (btnPrev) btnPrev.addEventListener('click', prevSlide);
+
+  // Keyboard navigation
   document.addEventListener('keydown', (e) => {
-    if (activeMode !== 'pitch') return;
-    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (currentSlide < totalSlides) { currentSlide++; updateSlideView(); } }
-    if (e.key === 'ArrowLeft') { if (currentSlide > 1) { currentSlide--; updateSlideView(); } }
+    if (activeMode === 'pitch') {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    }
   });
 
+  // Slide Actions
+  if (btnStartPitch) btnStartPitch.addEventListener('click', nextSlide);
+  if (btnJumpDb) btnJumpDb.addEventListener('click', () => switchMode('dashboard'));
+  if (btnConclusionDemo) btnConclusionDemo.addEventListener('click', () => switchMode('dashboard'));
+
   // ==========================================
-  // MODE TOGGLE
+  // MODE TOGGLE (PITCH VS DASHBOARD)
   // ==========================================
   function switchMode(mode) {
     activeMode = mode;
-    const btnPitch = document.getElementById('btn-mode-pitch');
-    const btnDash = document.getElementById('btn-mode-dashboard');
     if (mode === 'pitch') {
-      btnPitch.classList.add('active');
-      btnDash.classList.remove('active');
-      pitchContainer.style.display = 'flex';
-      dashboardContainer.classList.remove('active');
-      navControls.style.display = 'flex';
-      stopClock();
+      if (btnModePitch) btnModePitch.classList.add('active');
+      if (btnModeDashboard) btnModeDashboard.classList.remove('active');
+      if (pitchContainer) pitchContainer.style.display = 'flex';
+      if (dashboardContainer) dashboardContainer.classList.remove('active');
+      if (navControls) navControls.style.display = 'flex';
       updateSlideView();
+      stopSignageDemoSim();
     } else {
-      btnPitch.classList.remove('active');
-      btnDash.classList.add('active');
-      pitchContainer.style.display = 'none';
-      dashboardContainer.classList.add('active');
-      navControls.style.display = 'none';
-      renderLockerGrid();
-      resetKioskDemo();
-      startClock();
-      logEvent('키오스크 데모 모드 활성화.');
+      if (btnModePitch) btnModePitch.classList.remove('active');
+      if (btnModeDashboard) btnModeDashboard.classList.add('active');
+      if (pitchContainer) pitchContainer.style.display = 'none';
+      if (dashboardContainer) dashboardContainer.classList.add('active');
+      if (navControls) navControls.style.display = 'none';
+      startSignageDemoSim();
     }
   }
 
-  document.getElementById('btn-mode-pitch').addEventListener('click', () => switchMode('pitch'));
-  document.getElementById('btn-mode-dashboard').addEventListener('click', () => switchMode('dashboard'));
+  if (btnModePitch) btnModePitch.addEventListener('click', () => switchMode('pitch'));
+  if (btnModeDashboard) btnModeDashboard.addEventListener('click', () => switchMode('dashboard'));
 
   // ==========================================
-  // SLIDE 2: CONGESTION SIMULATOR
+  // SLIDE 2: VEHICLE TRAFFIC CONGESTION SLIDER
   // ==========================================
-  const congestionSlider = document.getElementById('congestion-slider');
-  if (congestionSlider) {
-    congestionSlider.addEventListener('input', (e) => {
-      const v = parseInt(e.target.value);
-      const label = document.getElementById('congestion-label');
-      const wait = document.getElementById('val-wait');
-      const loss = document.getElementById('val-loss');
-      const staff = document.getElementById('val-staff');
-      const waitCard = document.getElementById('wait-card');
-      const lossCard = document.getElementById('loss-card');
-      const staffCard = document.getElementById('staff-card');
+  const statsSlider = document.getElementById('stats-slider');
+  const sliderYearText = document.getElementById('slider-year-text');
+  const valPatients = document.getElementById('val-patients');
+  const valClinicRatio = document.getElementById('val-clinic-ratio');
+  const valRiskIndex = document.getElementById('val-risk-index');
+  
+  const cardPatients = document.getElementById('card-patients');
+  const cardClinicRatio = document.getElementById('card-clinic-ratio');
+  const cardRiskIndex = document.getElementById('card-risk-index');
 
-      let timeLabel = '한산 (오전)';
-      if (v > 30 && v <= 60) timeLabel = '보통 (점심)';
-      if (v > 60) timeLabel = '피크 (퇴근)';
-      label.textContent = timeLabel;
+  function updateStatsMetrics(level) {
+    let waitTime = '8분';
+    let lossRatio = '0.12%';
+    let riskLabel = '보통 (중)';
+    let statusText = `오후 (보통)`;
+    
+    if (level <= 1) {
+      statusText = `오전 (한산)`;
+      waitTime = '3분';
+      lossRatio = '0.02%';
+      riskLabel = '안정 (하)';
+    } else if (level == 2) {
+      statusText = `오후 (보통)`;
+      waitTime = '8분';
+      lossRatio = '0.12%';
+      riskLabel = '주의 (중)';
+    } else {
+      statusText = `퇴근 (피크)`;
+      waitTime = '18분';
+      lossRatio = '0.35%';
+      riskLabel = '혼잡 (상)';
+    }
 
-      const waitMin = Math.round(2 + v * 0.18);
-      wait.textContent = `${waitMin}분`;
-      wait.className = 'metric-value ' + (waitMin > 12 ? 'red' : waitMin > 7 ? 'cyan' : 'blue');
+    if (sliderYearText) sliderYearText.textContent = statusText;
+    if (valPatients) valPatients.textContent = waitTime;
+    if (valClinicRatio) valClinicRatio.textContent = lossRatio;
+    if (valRiskIndex) valRiskIndex.textContent = riskLabel;
 
-      const lossLevels = ['낮음', '중간', '높음', '매우 높음'];
-      const lossIdx = Math.min(3, Math.floor(v / 28));
-      loss.textContent = lossLevels[lossIdx];
-      loss.className = 'metric-value ' + (lossIdx >= 2 ? 'red' : lossIdx === 1 ? 'cyan' : 'green');
+    // Apply color styling based on level
+    if (riskLabel === '안정 (하)') {
+      if (valRiskIndex) valRiskIndex.className = 'metric-value teal';
+      if (cardRiskIndex) cardRiskIndex.className = 'metric-card';
+    } else if (riskLabel === '주의 (중)') {
+      if (valRiskIndex) valRiskIndex.className = 'metric-value teal';
+      if (cardRiskIndex) cardRiskIndex.className = 'metric-card';
+    } else {
+      if (valRiskIndex) valRiskIndex.className = 'metric-value cyan';
+      if (cardRiskIndex) cardRiskIndex.className = 'metric-card alert-active';
+    }
+  }
 
-      const staffLevels = ['낮음', '보통', '높음', '과부하'];
-      const staffIdx = Math.min(3, Math.floor(v / 26));
-      staff.textContent = staffLevels[staffIdx];
-      staff.className = 'metric-value ' + (staffIdx >= 2 ? 'red' : staffIdx === 1 ? 'cyan' : 'green');
-
-      [waitCard, lossCard, staffCard].forEach(c => c.classList.remove('alert-active'));
-      if (v > 65) { waitCard.classList.add('alert-active'); lossCard.classList.add('alert-active'); staffCard.classList.add('alert-active'); }
+  if (statsSlider) {
+    statsSlider.addEventListener('input', (e) => {
+      updateStatsMetrics(parseInt(e.target.value));
     });
   }
 
+  // Init Slide 2
+  updateStatsMetrics(2);
+
   // ==========================================
-  // SLIDE 3: ARCHITECTURE DIAGRAM
+  // SLIDE 3: SVG FLOW DIAGRAM ARCHITECTURE
   // ==========================================
   const nodeItems = document.querySelectorAll('.node-item');
-  const archNodes = ['ui', 'io', 'sensor', 'api', 'admin'];
-
-  function highlightArch(nodeName) {
-    for (let i = 0; i < 4; i++) {
-      const flow = document.getElementById(`flow-${i + 1}`);
-      if (flow) flow.style.display = 'none';
-    }
-    archNodes.forEach(n => {
-      const el = document.getElementById(`svg-${n}`);
-      if (el) el.setAttribute('stroke', '#334155');
+  
+  function triggerDiagramFlow(nodeName) {
+    // Hide all flow paths
+    const flow1 = document.getElementById('flow-mic-denoise');
+    const flow2 = document.getElementById('flow-denoise-translate');
+    const flow3 = document.getElementById('flow-translate-ui');
+    if (flow1) flow1.style.display = 'none';
+    if (flow2) flow2.style.display = 'none';
+    if (flow3) flow3.style.display = 'none';
+    
+    // Reset SVG node glow styling
+    document.querySelectorAll('.svg-node').forEach(node => {
+      const rect = node.querySelector('rect');
+      if (rect) {
+        rect.setAttribute('stroke', 'var(--border-color)');
+        rect.setAttribute('filter', 'none');
+      }
     });
-    const idx = archNodes.indexOf(nodeName);
-    for (let i = 0; i < idx; i++) {
-      const flow = document.getElementById(`flow-${i + 1}`);
-      if (flow) flow.style.display = 'block';
-    }
-    for (let i = 0; i <= idx; i++) {
-      const el = document.getElementById(`svg-${archNodes[i]}`);
-      if (el) el.setAttribute('stroke', '#3b82f6');
+
+    if (nodeName === 'mic') {
+      const nodeEl = document.getElementById('svg-node-mic');
+      if (nodeEl && nodeEl.querySelector('rect')) {
+        nodeEl.querySelector('rect').setAttribute('stroke', 'var(--accent-fuchsia)');
+        nodeEl.querySelector('rect').setAttribute('filter', 'url(#glow-fuchsia)');
+      }
+    } else if (nodeName === 'denoise') {
+      if (flow1) flow1.style.display = 'block';
+      const nodeEl = document.getElementById('svg-node-denoise');
+      if (nodeEl && nodeEl.querySelector('rect')) {
+        nodeEl.querySelector('rect').setAttribute('stroke', 'var(--primary-purple)');
+        nodeEl.querySelector('rect').setAttribute('filter', 'url(#glow-purple)');
+      }
+    } else if (nodeName === 'translate') {
+      if (flow1) flow1.style.display = 'block';
+      if (flow2) flow2.style.display = 'block';
+      const nodeEl = document.getElementById('svg-node-translate');
+      if (nodeEl && nodeEl.querySelector('rect')) {
+        nodeEl.querySelector('rect').setAttribute('stroke', 'var(--accent-fuchsia)');
+        nodeEl.querySelector('rect').setAttribute('filter', 'url(#glow-fuchsia)');
+      }
+    } else if (nodeName === 'ui') {
+      if (flow1) flow1.style.display = 'block';
+      if (flow2) flow2.style.display = 'block';
+      if (flow3) flow3.style.display = 'block';
+      const nodeEl = document.getElementById('svg-node-ui');
+      if (nodeEl && nodeEl.querySelector('rect')) {
+        nodeEl.querySelector('rect').setAttribute('stroke', 'var(--primary-purple)');
+        nodeEl.querySelector('rect').setAttribute('filter', 'url(#glow-purple)');
+      }
     }
   }
 
@@ -161,464 +274,926 @@ document.addEventListener('DOMContentLoaded', () => {
     item.addEventListener('click', () => {
       nodeItems.forEach(n => n.classList.remove('selected'));
       item.classList.add('selected');
-      highlightArch(item.getAttribute('data-node'));
+      const nodeName = item.getAttribute('data-node');
+      triggerDiagramFlow(nodeName);
     });
   });
-  highlightArch('ui');
+
+  // Bind SVG node click events safely
+  const svgNodeMic = document.getElementById('svg-node-mic');
+  if (svgNodeMic) {
+    svgNodeMic.addEventListener('click', () => {
+      const target = document.querySelector('[data-node="mic"]');
+      if (target) target.click();
+    });
+  }
+  const svgNodeDenoise = document.getElementById('svg-node-denoise');
+  if (svgNodeDenoise) {
+    svgNodeDenoise.addEventListener('click', () => {
+      const target = document.querySelector('[data-node="denoise"]');
+      if (target) target.click();
+    });
+  }
+  const svgNodeTranslate = document.getElementById('svg-node-translate');
+  if (svgNodeTranslate) {
+    svgNodeTranslate.addEventListener('click', () => {
+      const target = document.querySelector('[data-node="translate"]');
+      if (target) target.click();
+    });
+  }
+  const svgNodeUi = document.getElementById('svg-node-ui');
+  if (svgNodeUi) {
+    svgNodeUi.addEventListener('click', () => {
+      const target = document.querySelector('[data-node="ui"]');
+      if (target) target.click();
+    });
+  }
+
+  // Init Slide 3 diagram state
+  triggerDiagramFlow('mic');
 
   // ==========================================
-  // SLIDE 4: SCENARIO WIDGET
+  // SLIDE 4: SIDE-BY-SIDE DIALOGUE SIMULATION
   // ==========================================
-  let slideScenario = 'deposit';
-  let slideInput = '';
-  let slideStepIndex = 0;
-  const depositSteps = ['차량번호 입력', '빈 보관함 배정', '보관함 문 열림', '키 투입 · 문 닫힘', '접수 완료'];
-  const pickupSteps = ['차량번호 입력', 'PIN 비밀번호 입력', '본인 확인', '보관함 개방', '키 수령 완료'];
-
-  function renderScenarioSteps() {
-    const container = document.getElementById('scenario-steps');
-    if (!container) return;
-    const steps = slideScenario === 'deposit' ? depositSteps : pickupSteps;
-    container.innerHTML = steps.map((s, i) =>
-      `<div class="step-item ${i === slideStepIndex ? 'active' : ''}"><span class="step-num">${i + 1}</span><span>${s}</span></div>`
-    ).join('');
-  }
-
-  document.getElementById('btn-scenario-deposit').addEventListener('click', () => {
-    slideScenario = 'deposit';
-    document.getElementById('btn-scenario-deposit').classList.add('active');
-    document.getElementById('btn-scenario-pickup').classList.remove('active');
-    slideStepIndex = 0;
-    slideInput = '';
-    updateSlideKeypadDisplay();
-    renderScenarioSteps();
-  });
-
-  document.getElementById('btn-scenario-pickup').addEventListener('click', () => {
-    slideScenario = 'pickup';
-    document.getElementById('btn-scenario-pickup').classList.add('active');
-    document.getElementById('btn-scenario-deposit').classList.remove('active');
-    slideStepIndex = 0;
-    slideInput = '';
-    updateSlideKeypadDisplay();
-    renderScenarioSteps();
-  });
-
-  function updateSlideKeypadDisplay() {
-    const el = document.getElementById('slide-keypad-display');
-    if (!el) return;
-    if (slideScenario === 'pickup' && slideStepIndex >= 1) {
-      el.textContent = slideInput ? '•'.repeat(slideInput.length).padEnd(4, '•') : '____';
-    } else {
-      const formatted = slideInput.replace(/(\d{2})(\d{0,4})/, (_, a, b) => b ? `${a}${b.slice(0, 2)} ${b.slice(2)}` : a);
-      el.textContent = formatted || '___ ___';
+  const dialoguePresets = {
+    en: {
+      lang: "DEPOSIT FLOW",
+      patientText: "차량번호 '12가 3456'을 화면 키패드에 입력합니다. [확인] 선택.",
+      patientTrans: "차량번호 입력 수신 완료 → 가용 보관함 배정 로직 가동.",
+      staffText: "#3번 보관함이 자동으로 배정되고 전자락 해제 및 열림 신호가 감지됩니다.",
+      staffTrans: "보관함 #3번 개방 완료 (DOOR_OPEN). 키를 넣고 문을 닫아 주세요."
+    },
+    ja: {
+      lang: "PICK UP FLOW",
+      patientText: "차량번호 '12가 3456' 및 문자 수령 PIN '4821'을 입력합니다.",
+      patientTrans: "PIN 패스워드 인증 요청 수신 → 클라우드 보안 토큰 검증 성공.",
+      staffText: "#3번 보관함 잠금 해제. 고객이 차량 키를 수령한 후 도어를 닫아 접수를 마칩니다.",
+      staffTrans: "보관함 #3번 개방 완료 → 도어 폐쇄 완료 → 상태: EMPTY (회색)"
+    },
+    zh: {
+      lang: "TECHNICIAN FLOW",
+      patientText: "정비사 전용 권한 키 '7777' 입력 및 검색 차량번호 '12가 3456' 지정.",
+      patientTrans: "정비사 작업 권한 인증 완료 → 수령 보관함 원격 조회 실행.",
+      staffText: "차량 키 보관 부서 권한으로 보관함 #3을 강제 개방하여 정비 작업을 개시합니다.",
+      staffTrans: "보관함 #3번 정비 목적 개방 완료 → 정비사 작업 교대 로그 수집."
     }
+  };
+
+  let selectedPreset = 'en';
+
+  const btnPresetEn = document.getElementById('btn-preset-en');
+  const btnPresetJa = document.getElementById('btn-preset-ja');
+  const btnPresetZh = document.getElementById('btn-preset-zh');
+  const btnRunDialogue = document.getElementById('btn-run-dialogue');
+  
+  const panelPatient = document.getElementById('panel-patient');
+  const panelStaff = document.getElementById('panel-staff');
+  const labelPatientLang = document.getElementById('label-patient-lang');
+  
+  const textPatient = document.getElementById('text-patient');
+  const transPatient = document.getElementById('trans-patient');
+  const textStaff = document.getElementById('text-staff');
+  const transStaff = document.getElementById('trans-staff');
+  
+  const cursorPatient = document.getElementById('cursor-patient');
+  const cursorStaff = document.getElementById('cursor-staff');
+
+  function setPreset(presetName) {
+    if (isDialogueRunning) return;
+    selectedPreset = presetName;
+    const p = dialoguePresets[presetName];
+    
+    if (btnPresetEn) btnPresetEn.classList.remove('active');
+    if (btnPresetJa) btnPresetJa.classList.remove('active');
+    if (btnPresetZh) btnPresetZh.classList.remove('active');
+    
+    const targetBtn = document.getElementById(`btn-preset-${presetName}`);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    if (labelPatientLang) labelPatientLang.textContent = p.lang;
+    if (textPatient) textPatient.textContent = p.patientText;
+    if (transPatient) transPatient.textContent = p.patientTrans;
+    if (textStaff) textStaff.textContent = p.staffText;
+    if (transStaff) transStaff.textContent = p.staffTrans;
+    
+    if (textPatient && cursorPatient) textPatient.appendChild(cursorPatient);
+    if (textStaff && cursorStaff) textStaff.appendChild(cursorStaff);
+    
+    if (panelPatient) panelPatient.className = "lang-panel active-turn";
+    if (panelStaff) panelStaff.className = "lang-panel dimmed-turn";
+    if (cursorPatient) cursorPatient.style.display = 'inline-block';
+    if (cursorStaff) cursorStaff.style.display = 'none';
   }
 
-  document.getElementById('slide-keypad').addEventListener('click', (e) => {
-    const btn = e.target.closest('.keypad-btn');
-    if (!btn) return;
-    const key = btn.getAttribute('data-key');
-    if (key === 'del') { slideInput = slideInput.slice(0, -1); }
-    else if (key === 'ok') { runSlideScenarioStep(); return; }
-    else if (slideInput.length < 8) { slideInput += key; }
-    updateSlideKeypadDisplay();
-  });
+  if (btnPresetEn) btnPresetEn.addEventListener('click', () => setPreset('en'));
+  if (btnPresetJa) btnPresetJa.addEventListener('click', () => setPreset('ja'));
+  if (btnPresetZh) btnPresetZh.addEventListener('click', () => setPreset('zh'));
 
-  function runSlideScenarioStep() {
-    const steps = slideScenario === 'deposit' ? depositSteps : pickupSteps;
-    if (slideStepIndex < steps.length - 1) {
-      slideStepIndex++;
-      slideInput = '';
-      updateSlideKeypadDisplay();
-      renderScenarioSteps();
+  function typeText(element, cursor, fullText, translationElement, translationText, speed = 50, callback) {
+    if (!element) return;
+    element.innerHTML = '';
+    if (translationElement) {
+      translationElement.style.opacity = 0;
+      translationElement.style.transition = 'opacity 0.5s ease';
     }
-  }
-
-  document.getElementById('btn-run-scenario').addEventListener('click', () => {
-    slideStepIndex = 0;
-    slideInput = '';
-    updateSlideKeypadDisplay();
-    renderScenarioSteps();
-    let i = 0;
+    
+    let index = 0;
+    if (cursor) {
+      cursor.style.display = 'inline-block';
+      element.appendChild(cursor);
+    }
+    
+    const parentContainer = element.closest('.scrollable-messages');
+    
     const interval = setInterval(() => {
-      if (i < (slideScenario === 'deposit' ? depositSteps : pickupSteps).length - 1) {
-        slideStepIndex = i + 1;
-        renderScenarioSteps();
-        i++;
+      if (index < fullText.length) {
+        if (cursor) {
+          element.insertBefore(document.createTextNode(fullText.charAt(index)), cursor);
+        } else {
+          element.appendChild(document.createTextNode(fullText.charAt(index)));
+        }
+        index++;
+        if (parentContainer) {
+          parentContainer.scrollTop = parentContainer.scrollHeight;
+        }
       } else {
         clearInterval(interval);
+        if (cursor) cursor.style.display = 'none';
+        if (translationElement) {
+          translationElement.textContent = translationText;
+          translationElement.style.opacity = 1;
+        }
+        if (parentContainer) {
+          parentContainer.scrollTop = parentContainer.scrollHeight;
+        }
+        if (callback) callback();
       }
-    }, 1200);
-  });
+    }, speed);
+    
+    dialogueTimeouts.push(interval);
+  }
 
-  renderScenarioSteps();
+  function startDialogueSimulation() {
+    if (isDialogueRunning) return;
+    isDialogueRunning = true;
+    if (btnRunDialogue) {
+      btnRunDialogue.disabled = true;
+      btnRunDialogue.textContent = "진행 중...";
+    }
+    
+    const p = dialoguePresets[selectedPreset];
+
+    dialogueTimeouts.forEach(id => clearInterval(id));
+    dialogueTimeouts = [];
+
+    if (panelPatient) panelPatient.className = "lang-panel active-turn";
+    if (panelStaff) panelStaff.className = "lang-panel dimmed-turn";
+    
+    typeText(textPatient, cursorPatient, p.patientText, transPatient, p.patientTrans, 40, () => {
+      const t1 = setTimeout(() => {
+        if (panelPatient) panelPatient.className = "lang-panel dimmed-turn";
+        if (panelStaff) panelStaff.className = "lang-panel active-turn";
+        
+        typeText(textStaff, cursorStaff, p.staffText, transStaff, p.staffTrans, 40, () => {
+          const t2 = setTimeout(() => {
+            isDialogueRunning = false;
+            if (btnRunDialogue) {
+              btnRunDialogue.disabled = false;
+              btnRunDialogue.textContent = "시뮬레이션 가동";
+            }
+          }, 1500);
+          dialogueTimeouts.push(t2);
+        });
+      }, 1200);
+      dialogueTimeouts.push(t1);
+    });
+  }
+
+  if (btnRunDialogue) btnRunDialogue.addEventListener('click', startDialogueSimulation);
 
   // ==========================================
-  // SLIDE 6: ROADMAP
+  // SLIDE 5: NOISE FILTER SLIDER (Severity)
   // ==========================================
-  const roadmapTasks = [
-    'task-poc-1', 'task-poc-2', 'task-main-1', 'task-main-2', 'task-main-3', 'task-ext-1', 'task-ext-2'
-  ].map(id => document.getElementById(id)).filter(Boolean);
+  const noiseSlider = document.getElementById('noise-slider');
+  const labelNoiseDb = document.getElementById('label-noise-db');
+  const cardRawStt = document.getElementById('card-raw-stt');
+  const cardCleanedStt = document.getElementById('card-cleaned-stt');
+  const textRawStt = document.getElementById('text-raw-stt');
+  const textCleanedStt = document.getElementById('text-cleaned-stt');
 
-  document.querySelectorAll('.roadmap-phase').forEach(phase => {
+  function updateNoiseSim(db) {
+    let noiseLabel = '75 dB (원무 도로변 야외 소음)';
+    let rawText = '';
+    let cleanText = '';
+    
+    if (db <= 45) {
+      noiseLabel = `${db} dB (안정적인 실내 대기)`;
+      rawText = `"터치 감도 안정적 및 도어 락 제어 정상 동작 (지연 없음)"`;
+      cleanText = `"IP65 방수방진, 스마트 팬 및 <strong>도어 스캔 알고리즘</strong>으로 안정 운영 유지"`;
+      if (cardRawStt) cardRawStt.className = 'comp-card raw';
+      if (cardCleanedStt) cardCleanedStt.className = 'comp-card cleaned success-active';
+    } else if (db > 45 && db <= 75) {
+      noiseLabel = `${db} dB (원무 도로변 야외 소음)`;
+      rawText = `"직사광선에 의한 터치 감도 저하 및 도어 잠금 지연 <s>에러 발생</s>"`;
+      cleanText = `"IP65 방수방진, 스마트 팬 및 <strong>도어 스캔 알고리즘</strong>으로 안정 운영 유지"`;
+      if (cardRawStt) cardRawStt.className = 'comp-card raw noise-active';
+      if (cardCleanedStt) cardCleanedStt.className = 'comp-card cleaned success-active';
+    } else {
+      noiseLabel = `${db} dB (극한 혹서기/소음 환경)`;
+      rawText = `"태블릿 기기 발열로 인한 <s>시스템 정지</s> 및 <s>잠금 보드 제어 불능</s>"`;
+      cleanText = `"극한 가혹 조건 진입: 강제 쿨링 팬 기동 및 <strong>이중 센서 오차 자동 보정</strong> 가동 (무중단)"`;
+      if (cardRawStt) cardRawStt.className = 'comp-card raw noise-active';
+      if (cardCleanedStt) cardCleanedStt.className = 'comp-card cleaned success-active';
+    }
+
+    if (labelNoiseDb) labelNoiseDb.textContent = noiseLabel;
+    if (textRawStt) textRawStt.innerHTML = rawText;
+    if (textCleanedStt) textCleanedStt.innerHTML = cleanText;
+  }
+
+  if (noiseSlider) {
+    noiseSlider.addEventListener('input', (e) => {
+      updateNoiseSim(parseInt(e.target.value));
+    });
+  }
+
+  // Init Slide 5
+  updateNoiseSim(75);
+
+  // ==========================================
+  // SLIDE 6: ROADMAP INTERACTIVE CHECKLIST
+  // ==========================================
+  const roadmapPhases = document.querySelectorAll('.roadmap-phase');
+  const roadmapProgressText = document.getElementById('roadmap-progress-text');
+  const roadmapProgressFill = document.getElementById('roadmap-progress-fill');
+
+  roadmapPhases.forEach(phase => {
     phase.addEventListener('click', (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      document.querySelectorAll('.roadmap-phase').forEach(p => p.classList.remove('active'));
-      phase.classList.add('active');
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'LABEL') {
+        roadmapPhases.forEach(p => p.classList.remove('active'));
+        phase.classList.add('active');
+      }
     });
   });
 
+  const roadmapTasks = [
+    document.getElementById('task-poc-3'),
+    document.getElementById('task-poc-4'),
+    document.getElementById('task-main-1'),
+    document.getElementById('task-main-2'),
+    document.getElementById('task-main-3'),
+    document.getElementById('task-main-4'),
+    document.getElementById('task-ext-1'),
+    document.getElementById('task-ext-2')
+  ];
+
   function updateRoadmapProgress() {
-    let done = 2;
-    roadmapTasks.forEach(t => { if (t.checked) done++; });
-    const pct = Math.round((done / 9) * 100);
-    document.getElementById('roadmap-progress-text').textContent = `${pct}%`;
-    document.getElementById('roadmap-progress-fill').style.width = `${pct}%`;
+    let completedCount = 2; // base UI check items
+    const totalCount = 10;
+    
+    roadmapTasks.forEach(task => {
+      if (task && task.checked) completedCount++;
+    });
+    
+    const percentage = Math.round((completedCount / totalCount) * 100);
+    if (roadmapProgressText) roadmapProgressText.textContent = `${percentage}%`;
+    if (roadmapProgressFill) roadmapProgressFill.style.width = `${percentage}%`;
   }
-  roadmapTasks.forEach(t => t.addEventListener('change', updateRoadmapProgress));
+
+  roadmapTasks.forEach(task => {
+    if (task) {
+      task.addEventListener('change', updateRoadmapProgress);
+    }
+  });
+
+  // Init Slide 6
   updateRoadmapProgress();
 
   // ==========================================
-  // LOCKER GRID (ADMIN DASHBOARD)
+  // LIVE SIGNAGE SIMULATOR DEMO LOGIC
   // ==========================================
-  function statusClass(status) {
-    const map = {
-      EMPTY: 'empty', AVAILABLE: 'available', RESERVED: 'reserved',
-      RENTED: 'rented', RETURNED: 'available', DOOR_OPEN: 'door_open', DOOR_ERROR: 'door_error'
-    };
-    return map[status] || 'empty';
-  }
+  const btnDeviceLandscape = document.getElementById('btn-device-landscape');
+  const btnDevicePortrait = document.getElementById('btn-device-portrait');
+  const deviceFrame = document.getElementById('device-frame');
+  const selectScenario = document.getElementById('select-scenario');
+  const btnResetDemo = document.getElementById('btn-reset-demo');
+  const screenClock = document.getElementById('screen-clock');
 
-  function findEmptyLocker() {
-    return lockers.find(l => l.status === 'EMPTY' || l.status === 'AVAILABLE');
-  }
-
-  function findLockerByPlate(plate) {
-    return lockers.find(l => l.plate === plate && ['RENTED', 'RESERVED', 'RETURNED'].includes(l.status));
-  }
-
-  function renderLockerGrid() {
-    if (!lockerGrid) return;
-    lockerGrid.innerHTML = lockers.map(l => `
-      <div class="locker-cell ${statusClass(l.status)} ${selectedLockerId === l.id ? 'selected' : ''}"
-           data-id="${l.id}" title="${l.plate || l.status}">
-        <span class="locker-id">${l.id}</span>
-        <span class="locker-status">${l.status}</span>
-      </div>
-    `).join('');
-
-    lockerGrid.querySelectorAll('.locker-cell').forEach(cell => {
-      cell.addEventListener('click', () => {
-        selectedLockerId = parseInt(cell.getAttribute('data-id'));
-        const locker = lockers.find(x => x.id === selectedLockerId);
-        document.getElementById('detail-locker').textContent = `#${locker.id}`;
-        document.getElementById('detail-status').textContent = locker.status;
-        document.getElementById('detail-plate').textContent = locker.plate ? maskPlate(locker.plate) : '—';
-        renderLockerGrid();
-      });
-    });
-  }
-
-  function maskPlate(plate) {
-    if (plate.length <= 4) return plate;
-    return plate.slice(0, 2) + '**' + plate.slice(-2);
-  }
-
-  function setLockerStatus(id, status, plate, pin) {
-    const l = lockers.find(x => x.id === id);
-    if (!l) return;
-    l.status = status;
-    if (plate !== undefined) l.plate = plate;
-    if (pin !== undefined) l.pin = pin;
-    renderLockerGrid();
-  }
-
-  document.getElementById('btn-test-door').addEventListener('click', () => {
-    if (!selectedLockerId) {
-      logEvent('보관함을 먼저 선택하세요.');
-      return;
+  // KeyLocker Scenario database
+  const signageScenarios = {
+    reception: {
+      flag: "📟",
+      langName: "KIOSK SCREEN",
+      turns: [
+        {
+          speaker: 'patient',
+          text: "차량 키 보관을 시작합니다. 차량번호 4자리를 입력해 주세요.",
+          trans: "[System] Ready. Waiting for touch keypad input."
+        },
+        {
+          speaker: 'patient',
+          text: "차량번호 [1234] 입력 완료. [확인] 터치.",
+          trans: "[System] Keypad input received. Requesting empty locker allocation."
+        },
+        {
+          speaker: 'staff',
+          text: "가용 보관함 검색 완료: 보관함 #3번 자동 지정 및 원격 잠금 장치 해제.",
+          trans: "[Sensor] Locker #3 door lock relay activated. State: DOOR_OPEN (빨강)."
+        },
+        {
+          speaker: 'patient',
+          text: "#3번 보관함이 열렸습니다. 차량 키를 투입하고 문을 완전히 닫아 주세요.",
+          trans: "[System] Waiting for locker door closure sensor signal."
+        },
+        {
+          speaker: 'staff',
+          text: "보관함 #3번 도어 닫힘 및 잠금 장치 체결 감지 완료.",
+          trans: "[Sensor] Locker #3 door closed. State: RENTED (주황)."
+        },
+        {
+          speaker: 'patient',
+          text: "키 보관이 성공적으로 완료되었습니다. 수령용 SMS 비밀번호는 [4821] 입니다.",
+          trans: "[System] Safe deposit complete. SMS notification dispatched."
+        }
+      ]
+    },
+    treatment: {
+      flag: "📟",
+      langName: "KIOSK SCREEN",
+      turns: [
+        {
+          speaker: 'patient',
+          text: "차량 키 수령을 시작합니다. 차량번호 4자리를 입력해 주세요.",
+          trans: "[System] Ready. Waiting for vehicle plate search."
+        },
+        {
+          speaker: 'patient',
+          text: "차량번호 [1234] 입력 완료. 비밀번호 입력 단계로 이동.",
+          trans: "[System] Vehicle found in Locker #3. Verification code required."
+        },
+        {
+          speaker: 'patient',
+          text: "수령 문자 비밀번호 PIN [4821] 입력 완료. [확인] 터치.",
+          trans: "[System] Security token verification matches. Unlocking drawer."
+        },
+        {
+          speaker: 'staff',
+          text: "보관함 #3번 원격 전자락 잠금 해제 신호 송출 및 도어 열림 감지.",
+          trans: "[Sensor] Locker #3 door sensor: OPEN. State: DOOR_OPEN (빨강)."
+        },
+        {
+          speaker: 'staff',
+          text: "차량 키 수령 확인 및 보관함 #3번 완전 닫힘 감지.",
+          trans: "[Sensor] Locker #3 door sensor: CLOSED. State: EMPTY (회색)."
+        },
+        {
+          speaker: 'patient',
+          text: "차량 키 인도가 무사히 끝났습니다. 이용해 주셔서 감사합니다.",
+          trans: "[System] Safe pick up complete. Transaction archived."
+        }
+      ]
+    },
+    pharmacy: {
+      flag: "📟",
+      langName: "KIOSK SCREEN",
+      turns: [
+        {
+          speaker: 'patient',
+          text: "정비사 전용 권한 키 '7777' 입력 및 인증 통과.",
+          trans: "[System] Staff authentication success. Pulling list of cars."
+        },
+        {
+          speaker: 'patient',
+          text: "정비 대상 차량 [1234] 선택 및 보관함 #3번 열림 명령 인가.",
+          trans: "[System] Sending RS485 unlock packet to Board #1."
+        },
+        {
+          speaker: 'staff',
+          text: "보관함 #3번 잠금 해제 및 정비사 수령 완료.",
+          trans: "[Sensor] Locker #3 door opened by Staff. State: DOOR_OPEN (빨강)."
+        },
+        {
+          speaker: 'staff',
+          text: "작업 완료 후 차량 키 보관함 #3번에 재투입 및 도어 폐쇄.",
+          trans: "[Sensor] Locker #3 door closed and locked. State: RENTED (주황)."
+        },
+        {
+          speaker: 'patient',
+          text: "정비사 키 보관 이력 갱신 완료 및 고객 수령 비밀번호 신규 생성.",
+          trans: "[System] Database updated. Ready for customer retrieval."
+        }
+      ]
+    },
+    fault: {
+      flag: "📟",
+      langName: "KIOSK SCREEN",
+      turns: [
+        {
+          speaker: 'patient',
+          text: "차량 키 보관을 시작합니다. 차량번호 4자리를 입력해 주세요.",
+          trans: "[System] Ready."
+        },
+        {
+          speaker: 'patient',
+          text: "차량번호 [9999] 입력 완료. 가용 보관함 #12번 배정.",
+          trans: "[System] Locker #12 allocated. Triggering door unlock relay."
+        },
+        {
+          speaker: 'staff',
+          text: "보관함 #12번 잠금 해제 및 개방 신호 수집 완료.",
+          trans: "[Sensor] Locker #12 door sensor: OPEN. State: DOOR_OPEN (빨강)."
+        },
+        {
+          speaker: 'staff',
+          text: "경고: 보관함 #12번 도어 열림 대기 시간 60초 초과 감지.",
+          trans: "[Sensor] Warning: Door open timeout. Checking magnetic state."
+        },
+        {
+          speaker: 'staff',
+          text: "비상 알림: 보관함 #12번 도어가 닫히지 않았습니다! (미닫힘 장애)",
+          trans: "[Sensor] Critical Alert! State: DOOR_ERROR (빨강 점멸)."
+        },
+        {
+          speaker: 'patient',
+          text: "경고! 보관함 문이 닫히지 않았습니다. 안전을 위해 즉시 닫아 주세요.",
+          trans: "[System] Error screen active. Remote administrator notified."
+        }
+      ]
     }
-    const prev = lockers.find(x => x.id === selectedLockerId).status;
-    setLockerStatus(selectedLockerId, 'DOOR_OPEN');
-    logEvent(`[원격] 보관함 #${selectedLockerId} 도어 테스트 개방.`);
-    setTimeout(() => {
-      setLockerStatus(selectedLockerId, prev === 'DOOR_OPEN' ? 'RENTED' : prev);
-      logEvent(`[원격] 보관함 #${selectedLockerId} 도어 닫힘 확인.`);
-    }, 2500);
-  });
-
-  // ==========================================
-  // KIOSK DEMO SIMULATOR
-  // ==========================================
-  let kioskState = { screen: 'home', step: 0, plate: '', pin: '', assignedLocker: null };
-  let kioskTimeouts = [];
-  let autoplayEnabled = false;
-
-  const kioskScreens = {
-    home: () => `
-      <div class="kiosk-step-bar">메인 화면</div>
-      <div class="kiosk-title">무인 키 보관함</div>
-      <div class="kiosk-subtitle">차량 키를 맡기거나 찾으려면 아래 버튼을 선택하세요.</div>
-      <div class="kiosk-menu">
-        <button class="kiosk-menu-btn" data-action="deposit">🗝️ 차량키 맡기기</button>
-        <button class="kiosk-menu-btn" data-action="pickup">🔑 차량키 찾기</button>
-        <button class="kiosk-menu-btn secondary" data-action="technician">🔧 정비사 메뉴</button>
-      </div>
-    `,
-    input_plate: (label) => `
-      <div class="kiosk-step-bar">단계 ${kioskState.step}/4</div>
-      <div class="kiosk-title">${label || '차량번호 입력'}</div>
-      <div class="kiosk-subtitle">번호판을 입력해 주세요.</div>
-      <div class="keypad-display" id="kiosk-display">${formatPlate(kioskState.plate)}</div>
-      <div class="keypad" id="kiosk-keypad">
-        ${[1,2,3,4,5,6,7,8,9,'del',0,'ok'].map(k =>
-          `<button class="keypad-btn" data-key="${k}">${k === 'del' ? '⌫' : k === 'ok' ? '확인' : k}</button>`
-        ).join('')}
-      </div>
-      <button class="kiosk-menu-btn secondary" data-action="home" style="margin-top:0.5rem;padding:0.6rem;">← 처음으로</button>
-    `,
-    input_pin: () => `
-      <div class="kiosk-step-bar">단계 2/4</div>
-      <div class="kiosk-title">비밀번호 입력</div>
-      <div class="kiosk-subtitle">문자로 받으신 4자리 PIN을 입력하세요.</div>
-      <div class="keypad-display" id="kiosk-display">${'•'.repeat(kioskState.pin.length).padEnd(4, '○')}</div>
-      <div class="keypad" id="kiosk-keypad">
-        ${[1,2,3,4,5,6,7,8,9,'del',0,'ok'].map(k =>
-          `<button class="keypad-btn" data-key="${k}">${k === 'del' ? '⌫' : k === 'ok' ? '확인' : k}</button>`
-        ).join('')}
-      </div>
-    `,
-    assigned: () => `
-      <div class="kiosk-step-bar">단계 3/4</div>
-      <div class="kiosk-title">보관함이 배정되었습니다</div>
-      <div class="kiosk-locker-assigned">
-        <div style="font-size:0.85rem;color:#94A3B8;margin-bottom:0.5rem;">보관함 번호</div>
-        <div class="locker-num-big">#${kioskState.assignedLocker}</div>
-        <div class="door-animation open" id="door-anim"><div class="door-panel"></div></div>
-        <div class="kiosk-subtitle">키를 넣고 문을 닫아 주세요.</div>
-      </div>
-    `,
-    complete: (msg) => `
-      <div class="kiosk-step-bar">완료</div>
-      <div class="kiosk-title" style="color:var(--accent-green);">✓ ${msg || '처리가 완료되었습니다'}</div>
-      <div class="kiosk-subtitle">이용해 주셔서 감사합니다.</div>
-      <button class="kiosk-menu-btn" data-action="home" style="margin-top:1rem;">처음으로</button>
-    `,
-    error: (msg) => `
-      <div class="kiosk-step-bar">오류</div>
-      <div class="kiosk-title" style="color:var(--accent-red);">⚠ ${msg}</div>
-      <button class="kiosk-menu-btn" data-action="home" style="margin-top:1rem;">처음으로</button>
-    `
   };
 
-  function formatPlate(p) {
-    if (!p) return '___ ___';
-    return p.length > 2 ? p.slice(0, 2) + (p.length > 2 ? ' ' + p.slice(2) : '') : p;
-  }
+  let currentScenario = 'reception';
+  let deviceOrientation = 'landscape';
+  let isSignageSimRunning = false;
+  let signageTimeouts = [];
+  let clockIntervalId = null;
+  let audioStreamIntervalId = null;
+  let logIntervalId = null;
 
-  function renderKiosk() {
-    if (!kioskBody) return;
-    let html = '';
-    switch (kioskState.screen) {
-      case 'home': html = kioskScreens.home(); break;
-      case 'input_plate': html = kioskScreens.input_plate(); break;
-      case 'input_pin': html = kioskScreens.input_pin(); break;
-      case 'assigned': html = kioskScreens.assigned(); break;
-      case 'complete': html = kioskScreens.complete(kioskState.completeMsg); break;
-      case 'error': html = kioskScreens.error(kioskState.errorMsg); break;
-      default: html = kioskScreens.home();
+  // Autoplay config
+  const checkboxAutoplay = document.getElementById('checkbox-autoplay');
+  const btnNextTurn = document.getElementById('btn-next-turn');
+  const patientMessagesContainer = document.getElementById('patient-messages-container');
+  const staffMessagesContainer = document.getElementById('staff-messages-container');
+  const eventLogBox = document.getElementById('event-log-box');
+
+  let currentTurnIndex = 0;
+  let autoplayEnabled = true;
+
+  // Signal Wave Canvas config
+  const canvasLiveAudio = document.getElementById('canvas-live-audio');
+  let ctxLiveAudio = null;
+  if (canvasLiveAudio) {
+    ctxLiveAudio = canvasLiveAudio.getContext('2d');
+  }
+  let waveAmplitude = 1.5; // Normal quiet wave
+  let wavePhase = 0;
+
+  function startSignageDemoSim() {
+    stopSignageDemoSim();
+
+    // Init canvas size
+    if (canvasLiveAudio) {
+      canvasLiveAudio.width = 140;
+      canvasLiveAudio.height = 32;
     }
-    kioskBody.innerHTML = html;
-    bindKioskEvents();
+
+    // 1. Run real-time clock inside screen
+    updateScreenClock();
+    clockIntervalId = setInterval(updateScreenClock, 1000);
+
+    // 2. Run Sine Audio Wave drawing loop (60fps)
+    if (ctxLiveAudio) {
+      audioStreamIntervalId = setInterval(drawLiveAudioWave, 30);
+    }
+
+    // 3. Random background logs
+    logIntervalId = setInterval(triggerRandomSignageLog, 4500);
+
+    // 4. Seed and render lockers inside the cabinet screen
+    seedCabinetLockers();
+    renderCabinetLockerGrid();
+
+    // 5. Start dialogue loop
+    resetSignageDialogue();
+
+    logSystemEvent("KeyLocker simulator activated. Network connection initialized.");
   }
 
-  function bindKioskEvents() {
-    kioskBody.querySelectorAll('[data-action]').forEach(btn => {
-      btn.addEventListener('click', () => handleKioskAction(btn.getAttribute('data-action')));
+  function stopSignageDemoSim() {
+    if (clockIntervalId) clearInterval(clockIntervalId);
+    if (audioStreamIntervalId) clearInterval(audioStreamIntervalId);
+    if (logIntervalId) clearInterval(logIntervalId);
+    
+    signageTimeouts.forEach(t => clearTimeout(t));
+    signageTimeouts = [];
+    isSignageSimRunning = false;
+  }
+
+  // Device orientation toggles
+  if (btnDeviceLandscape) {
+    btnDeviceLandscape.addEventListener('click', () => {
+      if (deviceOrientation === 'landscape') return;
+      deviceOrientation = 'landscape';
+      btnDeviceLandscape.classList.add('active');
+      if (btnDevicePortrait) btnDevicePortrait.classList.remove('active');
+      
+      if (deviceFrame) deviceFrame.className = 'device-frame landscape-mode';
+      logSystemEvent("Kiosk orientation changed to LANDSCAPE (16:9).");
+      resetSignageDialogue();
     });
-    const kp = document.getElementById('kiosk-keypad');
-    if (kp) {
-      kp.addEventListener('click', (e) => {
-        const b = e.target.closest('.keypad-btn');
-        if (!b) return;
-        const key = b.getAttribute('data-key');
-        if (kioskState.screen === 'input_pin') {
-          if (key === 'del') kioskState.pin = kioskState.pin.slice(0, -1);
-          else if (key === 'ok') submitPin();
-          else if (kioskState.pin.length < 4) kioskState.pin += key;
-        } else {
-          if (key === 'del') kioskState.plate = kioskState.plate.slice(0, -1);
-          else if (key === 'ok') submitPlate();
-          else if (kioskState.plate.length < 8) kioskState.plate += key;
+  }
+
+  if (btnDevicePortrait) {
+    btnDevicePortrait.addEventListener('click', () => {
+      if (deviceOrientation === 'portrait') return;
+      deviceOrientation = 'portrait';
+      btnDevicePortrait.classList.add('active');
+      if (btnDeviceLandscape) btnDeviceLandscape.classList.remove('active');
+      
+      if (deviceFrame) deviceFrame.className = 'device-frame portrait-mode';
+      logSystemEvent("Kiosk orientation changed to PORTRAIT (9:16).");
+      resetSignageDialogue();
+    });
+  }
+
+  // Scenario Dropdown event
+  if (selectScenario) {
+    selectScenario.addEventListener('change', (e) => {
+      currentScenario = e.target.value;
+      logSystemEvent(`Scenario context switched to [${currentScenario.toUpperCase()}].`);
+      resetSignageDialogue();
+    });
+  }
+
+  if (btnResetDemo) {
+    btnResetDemo.addEventListener('click', () => {
+      logSystemEvent("Manual hardware reset dispatched.");
+      resetSignageDialogue();
+    });
+  }
+
+  // Autoplay toggle handler
+  if (checkboxAutoplay) {
+    checkboxAutoplay.addEventListener('change', (e) => {
+      autoplayEnabled = e.target.checked;
+      logSystemEvent(`Autoplay mode changed: ${autoplayEnabled ? 'ON' : 'OFF'}`);
+      
+      if (autoplayEnabled) {
+        if (btnNextTurn) btnNextTurn.style.display = 'none';
+        if (!isSignageSimRunning) {
+          runSignageTurn();
         }
-        renderKiosk();
-      });
+      } else {
+        if (btnNextTurn) {
+          btnNextTurn.style.display = 'inline-block';
+          const scenario = signageScenarios[currentScenario];
+          if (currentTurnIndex >= scenario.turns.length) {
+            btnNextTurn.textContent = "완료";
+            btnNextTurn.disabled = true;
+          } else {
+            btnNextTurn.textContent = currentTurnIndex === 0 ? "대화 시작 ⏭️" : "다음 단계 ⏭️";
+            btnNextTurn.disabled = false;
+          }
+        }
+      }
+    });
+  }
+
+  // Next Turn button handler
+  if (btnNextTurn) {
+    btnNextTurn.addEventListener('click', () => {
+      if (isSignageSimRunning) return;
+      
+      const scenario = signageScenarios[currentScenario];
+      if (currentTurnIndex >= scenario.turns.length) {
+        return;
+      }
+      
+      btnNextTurn.disabled = true;
+      btnNextTurn.textContent = "진행 중...";
+      runSignageTurn();
+    });
+  }
+
+  // Real-time clock update helper
+  function updateScreenClock() {
+    const time = new Date();
+    const hh = String(time.getHours()).padStart(2, '0');
+    const mm = String(time.getMinutes()).padStart(2, '0');
+    const ss = String(time.getSeconds()).padStart(2, '0');
+    if (screenClock) screenClock.textContent = `${hh}:${mm}:${ss}`;
+  }
+
+  // Draw smooth animated sine wave in the footer of signage screen
+  function drawLiveAudioWave() {
+    if (!ctxLiveAudio) return; // guard: canvas absent on non-dashboard pages
+    ctxLiveAudio.fillStyle = '#08050e';
+    ctxLiveAudio.fillRect(0, 0, 140, 32);
+    
+    ctxLiveAudio.strokeStyle = '#8b5cf6';
+    ctxLiveAudio.lineWidth = 1.5;
+    ctxLiveAudio.beginPath();
+    
+    wavePhase += 0.22; // Wave propagation speed
+    
+    for (let x = 0; x < 140; x++) {
+      const angle = (x / 140) * Math.PI * 4 + wavePhase;
+      const boundaryFade = Math.sin((x / 140) * Math.PI);
+      const y = 16 + Math.sin(angle) * waveAmplitude * boundaryFade;
+      
+      if (x === 0) {
+        ctxLiveAudio.moveTo(x, y);
+      } else {
+        ctxLiveAudio.lineTo(x, y);
+      }
+    }
+    
+    ctxLiveAudio.stroke();
+  }
+
+  // Helper to append a chat bubble to the panel body
+  function appendMessageBubble(container, text, trans) {
+    if (!container) return null;
+
+    container.querySelectorAll('.chat-bubble').forEach(b => b.classList.remove('active-bubble'));
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble active-bubble';
+
+    const textEl = document.createElement('p');
+    textEl.className = 'bubble-text';
+
+    const transEl = document.createElement('p');
+    transEl.className = 'bubble-trans';
+    transEl.style.opacity = 0; // Starts hidden
+
+    const cursor = document.createElement('span');
+    cursor.className = 'typing-cursor';
+
+    bubble.appendChild(textEl);
+    bubble.appendChild(transEl);
+    container.appendChild(bubble);
+
+    // Scroll container down
+    container.scrollTop = container.scrollHeight;
+
+    return { textEl, transEl, cursor };
+  }
+
+  // Runs full dialogue loop matching the current scenario
+  function resetSignageDialogue() {
+    signageTimeouts.forEach(t => clearTimeout(t));
+    signageTimeouts = [];
+    isSignageSimRunning = false;
+
+    dialogueTimeouts.forEach(id => clearInterval(id));
+    dialogueTimeouts = [];
+
+    // Reset scenario indices
+    currentTurnIndex = 0;
+
+    // Dom mapping elements
+    const sPanelPatient = document.getElementById('screen-panel-patient');
+    const sPanelStaff = document.getElementById('screen-panel-staff');
+    const flagPatient = document.getElementById('flag-patient');
+    const labelPatientLangName = document.getElementById('label-patient-lang-name');
+    const liveMicBtn = document.getElementById('btn-live-mic');
+
+    // Clear message bodies
+    if (patientMessagesContainer) patientMessagesContainer.innerHTML = '';
+    
+    // Reset seed lockers & render
+    seedCabinetLockers();
+    renderCabinetLockerGrid();
+
+    // Retrieve active scenario
+    const s = signageScenarios[currentScenario];
+
+    // Reset initial UI states
+    if (flagPatient) flagPatient.textContent = s.flag;
+    if (labelPatientLangName) labelPatientLangName.textContent = s.langName;
+    
+    if (sPanelPatient) sPanelPatient.className = "screen-panel patient-side active-turn";
+    if (sPanelStaff) sPanelStaff.className = "screen-panel staff-side dimmed-turn";
+    
+    if (liveMicBtn) liveMicBtn.classList.remove('active');
+    waveAmplitude = 1.5; // Flat quiet line
+
+    // Reset Next Turn button
+    if (btnNextTurn) {
+      btnNextTurn.disabled = false;
+      btnNextTurn.textContent = "시작 ⏭️";
+      btnNextTurn.style.display = autoplayEnabled ? 'none' : 'inline-block';
+    }
+
+    // Start simulation after 800ms if Autoplay is enabled
+    if (autoplayEnabled) {
+      const startupTimeout = setTimeout(runSignageTurn, 800);
+      signageTimeouts.push(startupTimeout);
     }
   }
 
-  function handleKioskAction(action) {
-    kioskState.plate = '';
-    kioskState.pin = '';
-    if (action === 'home') {
-      kioskState = { screen: 'home', step: 0, plate: '', pin: '', assignedLocker: null };
-    } else if (action === 'deposit') {
-      kioskState = { screen: 'input_plate', step: 1, plate: '', pin: '', assignedLocker: null, flow: 'deposit' };
-    } else if (action === 'pickup') {
-      kioskState = { screen: 'input_plate', step: 1, plate: '', pin: '', assignedLocker: null, flow: 'pickup' };
-    } else if (action === 'technician') {
-      kioskState = { screen: 'input_plate', step: 1, plate: '', pin: '', assignedLocker: null, flow: 'technician' };
-    }
-    renderKiosk();
-    if (autoplayEnabled && action !== 'home') scheduleAutoplay();
-  }
+  function runSignageTurn() {
+    isSignageSimRunning = true;
+    const scenario = signageScenarios[currentScenario];
 
-  function submitPlate() {
-    if (kioskState.plate.length < 4) return;
-    const flow = kioskState.flow;
-
-    if (flow === 'deposit') {
-      const empty = findEmptyLocker();
-      if (!empty) {
-        kioskState = { screen: 'error', errorMsg: '빈 보관함이 없습니다.' };
-        renderKiosk();
-        return;
+    if (currentTurnIndex >= scenario.turns.length) {
+      // Scenario finished
+      if (autoplayEnabled) {
+        logSystemEvent("Simulation scenario completed. Restarting in 5 seconds...");
+        const t = setTimeout(() => {
+          resetSignageDialogue();
+        }, 5000);
+        signageTimeouts.push(t);
+      } else {
+        isSignageSimRunning = false;
+        if (btnNextTurn) {
+          btnNextTurn.disabled = true;
+          btnNextTurn.textContent = "대화 완료";
+        }
+        logSystemEvent("Simulation scenario completed.");
       }
-      kioskState.assignedLocker = empty.id;
-      setLockerStatus(empty.id, 'DOOR_OPEN', kioskState.plate, null);
-      logEvent(`[맡기기] ${kioskState.plate} → 보관함 #${empty.id} 배정, 문 개방.`);
-      kioskState.screen = 'assigned';
-      kioskState.step = 3;
-      renderKiosk();
-      kioskTimeouts.push(setTimeout(() => {
-        setLockerStatus(empty.id, 'RENTED', kioskState.plate, String(Math.floor(1000 + Math.random() * 9000)));
-        kioskState.screen = 'complete';
-        kioskState.completeMsg = '키 보관이 완료되었습니다';
-        logEvent(`[맡기기] 보관함 #${empty.id} 문 닫힘 · 접수 완료.`);
-        renderKiosk();
-        if (autoplayEnabled) kioskTimeouts.push(setTimeout(resetKioskDemo, 3000));
-      }, 3500));
-    } else if (flow === 'pickup') {
-      const locker = findLockerByPlate(kioskState.plate);
-      if (!locker) {
-        kioskState = { screen: 'error', errorMsg: '등록된 차량번호가 없습니다.' };
-        renderKiosk();
-        return;
-      }
-      kioskState.assignedLocker = locker.id;
-      kioskState.screen = 'input_pin';
-      kioskState.step = 2;
-      renderKiosk();
-    } else if (flow === 'technician') {
-      const locker = findLockerByPlate(kioskState.plate) || lockers.find(l => l.plate === kioskState.plate);
-      if (!locker) {
-        kioskState = { screen: 'error', errorMsg: '해당 차량 키를 찾을 수 없습니다.' };
-        renderKiosk();
-        return;
-      }
-      setLockerStatus(locker.id, 'DOOR_OPEN');
-      logEvent(`[정비사] ${kioskState.plate} → 보관함 #${locker.id} 개방.`);
-      kioskState.screen = 'complete';
-      kioskState.completeMsg = `보관함 #${locker.id} 개방됨`;
-      renderKiosk();
-    }
-  }
-
-  function submitPin() {
-    const locker = lockers.find(l => l.id === kioskState.assignedLocker);
-    if (!locker || locker.pin !== kioskState.pin) {
-      kioskState = { screen: 'error', errorMsg: '비밀번호가 올바르지 않습니다.' };
-      logEvent(`[찾기] PIN 검증 실패 (${kioskState.plate}).`);
-      renderKiosk();
       return;
     }
-    setLockerStatus(locker.id, 'DOOR_OPEN');
-    logEvent(`[찾기] ${kioskState.plate} PIN 확인 → 보관함 #${locker.id} 개방.`);
-    kioskState.screen = 'assigned';
-    kioskState.step = 4;
-    renderKiosk();
-    kioskTimeouts.push(setTimeout(() => {
-      setLockerStatus(locker.id, 'EMPTY', null, null);
-      kioskState.screen = 'complete';
-      kioskState.completeMsg = '키 수령이 완료되었습니다';
-      logEvent(`[찾기] 보관함 #${locker.id} 키 수령 완료.`);
-      renderKiosk();
-      if (autoplayEnabled) kioskTimeouts.push(setTimeout(resetKioskDemo, 3000));
-    }, 3500));
+
+    const turn = scenario.turns[currentTurnIndex];
+    const speaker = turn.speaker;
+
+    const sPanelPatient = document.getElementById('screen-panel-patient');
+    const sPanelStaff = document.getElementById('screen-panel-staff');
+    const liveMicBtn = document.getElementById('btn-live-mic');
+
+    // 1. Focus on speaker panel
+    if (speaker === 'patient') {
+      if (sPanelPatient) sPanelPatient.className = "screen-panel patient-side active-turn";
+      if (sPanelStaff) sPanelStaff.className = "screen-panel staff-side dimmed-turn";
+      logSystemEvent(`[API] Kiosk touch input step. Waiting for user action...`);
+    } else {
+      if (sPanelPatient) sPanelPatient.className = "screen-panel patient-side dimmed-turn";
+      if (sPanelStaff) sPanelStaff.className = "screen-panel staff-side active-turn";
+      logSystemEvent(`[Sensor] Locker hardware sync step. Communicating with RS485 board...`);
+    }
+
+    // 2. Animate Mic/Pulse and audio wave
+    if (liveMicBtn) liveMicBtn.classList.add('active');
+    waveAmplitude = 16.0; // High active signal pulse
+
+    // 3. Update locker grid states in memory during turns to sync visuals
+    if (currentScenario === 'reception') {
+      // Deposit scenario
+      if (currentTurnIndex === 2) {
+        // allocation & open door #3
+        lockers[2].status = 'DOOR_OPEN';
+        lockers[2].plate = '1234';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 4) {
+        // door closed & occupied #3
+        lockers[2].status = 'RENTED';
+        renderCabinetLockerGrid();
+      }
+    } else if (currentScenario === 'treatment') {
+      // Pick up scenario
+      if (currentTurnIndex === 0) {
+        // seed target locker to rented first
+        lockers[2].status = 'RENTED';
+        lockers[2].plate = '1234';
+        lockers[2].pin = '4821';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 3) {
+        // door opens #3
+        lockers[2].status = 'DOOR_OPEN';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 4) {
+        // door closed & empty #3
+        lockers[2].status = 'EMPTY';
+        renderCabinetLockerGrid();
+      }
+    } else if (currentScenario === 'pharmacy') {
+      // Tech scenario
+      if (currentTurnIndex === 0) {
+        lockers[2].status = 'RENTED';
+        lockers[2].plate = '1234';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 2) {
+        // opens
+        lockers[2].status = 'DOOR_OPEN';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 4) {
+        // closed & rented back
+        lockers[2].status = 'RENTED';
+        renderCabinetLockerGrid();
+      }
+    } else if (currentScenario === 'fault') {
+      // Fault scenario
+      if (currentTurnIndex === 2) {
+        lockers[11].status = 'DOOR_OPEN';
+        lockers[11].plate = '9999';
+        renderCabinetLockerGrid();
+      } else if (currentTurnIndex === 4) {
+        // door error
+        lockers[11].status = 'DOOR_ERROR';
+        renderCabinetLockerGrid();
+      }
+    }
+
+    // 4. Append bubble to Kiosk Interaction log (left panel)
+    const container = patientMessagesContainer;
+    const bubbleObj = appendMessageBubble(container, turn.text, turn.trans);
+
+    if (bubbleObj) {
+      // 5. Type out text
+      typeText(bubbleObj.textEl, bubbleObj.cursor, turn.text, bubbleObj.transEl, turn.trans, 40, () => {
+        // Typing completes
+        if (liveMicBtn) liveMicBtn.classList.remove('active');
+        waveAmplitude = 1.5; // back to quiet
+        logSystemEvent(speaker === 'patient'
+          ? "[API] Kiosk screen transition executed successfully."
+          : "[Sensor] Locker state feedback synced with server database."
+        );
+
+        currentTurnIndex++;
+
+        // 6. Autoplay next turn or wait for manual click
+        if (autoplayEnabled) {
+          const t = setTimeout(runSignageTurn, 2200); // Wait 2.2s before next turn
+          signageTimeouts.push(t);
+        } else {
+          isSignageSimRunning = false;
+          if (btnNextTurn) {
+            btnNextTurn.disabled = false;
+            if (currentTurnIndex >= scenario.turns.length) {
+              btnNextTurn.textContent = "완료";
+              btnNextTurn.disabled = true;
+            } else {
+              btnNextTurn.textContent = "다음 단계 ⏭️";
+            }
+          }
+        }
+      });
+    } else {
+      isSignageSimRunning = false;
+    }
   }
 
-  function resetKioskDemo() {
-    kioskTimeouts.forEach(t => clearTimeout(t));
-    kioskTimeouts = [];
-    seedLockers();
-    kioskState = { screen: 'home', step: 0, plate: '', pin: '', assignedLocker: null };
-    renderKiosk();
-    renderLockerGrid();
-    logEvent('데모 상태가 초기화되었습니다.');
-  }
-
-  function scheduleAutoplay() {
-    const scenario = document.getElementById('select-scenario').value;
-    kioskTimeouts.push(setTimeout(() => {
-      if (kioskState.screen === 'input_plate') {
-        kioskState.plate = scenario === 'pickup' ? '12가3456' : '78라9999';
-        submitPlate();
-        if (scenario === 'pickup') {
-          kioskTimeouts.push(setTimeout(() => {
-            kioskState.pin = '4821';
-            submitPin();
-          }, 1500));
+  // Trigger next turn manually on Mic button click if Autoplay is OFF
+  const liveMicBtn = document.getElementById('btn-live-mic');
+  if (liveMicBtn) {
+    liveMicBtn.addEventListener('click', () => {
+      if (!autoplayEnabled && !isSignageSimRunning) {
+        if (btnNextTurn && !btnNextTurn.disabled) {
+          btnNextTurn.click();
         }
       }
-    }, 1200));
+    });
   }
 
-  document.getElementById('btn-reset-demo').addEventListener('click', resetKioskDemo);
-  document.getElementById('select-scenario').addEventListener('change', (e) => {
-    resetKioskDemo();
-    const v = e.target.value;
-    if (v === 'deposit') handleKioskAction('deposit');
-    else if (v === 'pickup') handleKioskAction('pickup');
-    else handleKioskAction('technician');
-    logEvent(`시나리오 변경: ${e.target.options[e.target.selectedIndex].text}`);
-  });
+  // System logging simulator
+  const randomSignageLogs = [
+    "Sensor Scan: RS485 loop checklist complete. 20 locking relays normal.",
+    "API Sync: Heartbeat ping: 14ms (via client gateway API).",
+    "Security: Cleared cache memory block. Security pin logs flushed.",
+    "Hardware: Charging auxiliary battery pack. Current load: 1.2A.",
+    "Sensor: Magnetic door sensor #8 loop checked: normal.",
+    "API WebSocket: High database transcription confidence (99.8%)."
+  ];
 
-  document.getElementById('checkbox-autoplay').addEventListener('change', (e) => {
-    autoplayEnabled = e.target.checked;
-    logEvent(`자동 재생: ${autoplayEnabled ? 'ON' : 'OFF'}`);
-    if (autoplayEnabled) scheduleAutoplay();
-  });
+  function triggerRandomSignageLog() {
+    if (activeMode !== 'dashboard') return;
+    const idx = Math.floor(Math.random() * randomSignageLogs.length);
+    logSystemEvent(randomSignageLogs[idx]);
+  }
 
-  // ==========================================
-  // LOGGING & CLOCK
-  // ==========================================
-  function logEvent(msg) {
+  function logSystemEvent(msg) {
     if (!eventLogBox) return;
-    const t = new Date();
-    const ts = [t.getHours(), t.getMinutes(), t.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
-    const entry = document.createElement('div');
-    entry.className = 'log-entry';
-    entry.innerHTML = `<span class="log-time">[${ts}]</span> <span class="log-msg">${msg}</span>`;
-    eventLogBox.appendChild(entry);
-    while (eventLogBox.children.length > 50) eventLogBox.removeChild(eventLogBox.firstChild);
+    const time = new Date();
+    const hh = String(time.getHours()).padStart(2, '0');
+    const mm = String(time.getMinutes()).padStart(2, '0');
+    const ss = String(time.getSeconds()).padStart(2, '0');
+    
+    const logItem = document.createElement('div');
+    logItem.className = 'log-entry';
+    if (msg.includes('Alert') || msg.includes('Warning') || msg.includes('경고') || msg.includes('오류')) {
+      logItem.className = 'log-entry alert';
+    }
+    logItem.innerHTML = `<span class="log-time">[${hh}:${mm}:${ss}]</span> <span class="log-msg">${msg}</span>`;
+    
+    eventLogBox.appendChild(logItem);
     eventLogBox.scrollTop = eventLogBox.scrollHeight;
   }
 
-  function startClock() {
-    function tick() {
-      const t = new Date();
-      if (screenClock) screenClock.textContent = [t.getHours(), t.getMinutes(), t.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
-    }
-    tick();
-    clockInterval = setInterval(tick, 1000);
-  }
-
-  function stopClock() {
-    if (clockInterval) clearInterval(clockInterval);
-  }
-
-  // Init
+  // Handle initialization of slide views
   updateSlideView();
-  renderLockerGrid();
+
+  // ==========================================
+  // DASHBOARD-ONLY PAGE INITIALIZATION
+  // 슬라이드덱/모드토글이 존재하지 않는 dashboard.html에서는
+  // 대시보드(키오스크 시뮬레이터)를 기본 화면으로 표시하고 가동한다.
+  // 슬라이드/모드토글 요소는 모두 널가드 처리되어 있으므로 부재 시에도 안전하다.
+  // ==========================================
+  const slideDeckPresent = !!pitchContainer || !!document.getElementById('slide-1');
+  if (!slideDeckPresent && dashboardContainer) {
+    switchMode('dashboard');
+  }
 
 });

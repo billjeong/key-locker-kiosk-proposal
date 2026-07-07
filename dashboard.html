@@ -3,141 +3,315 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>무인 차량 키 보관함 키오스크 — 실시간 데모</title>
-  <meta name="description" content="무인 차량 키 보관함 키오스크의 21.5인치 터치 UI와 20구 보관함 관리 대시보드 시뮬레이션 데모.">
+  <title>무인 차량 키 보관함 키오스크 — 실시간 대시보드</title>
+  <meta name="description" content="정비소·서비스센터를 위한 실외용 무인 차량 키 보관함 키오스크 도입 제안 — 실시간 대시보드 데모.">
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ko_KR">
-  <meta property="og:title" content="무인 차량 키 보관함 키오스크 — 실시간 데모">
-  <meta property="og:description" content="무인 차량 키 보관함 키오스크의 21.5인치 터치 UI와 20구 보관함 관리 대시보드 시뮬레이션 데모.">
+  <meta property="og:title" content="무인 차량 키 보관함 키오스크 — 실시간 대시보드">
+  <meta property="og:description" content="정비소·서비스센터를 위한 실외용 무인 차량 키 보관함 키오스크 도입 제안 — 실시간 대시보드 데모.">
   <meta property="og:site_name" content="키 보관함 키오스크 제안">
   <meta name="twitter:card" content="summary">
+
+  <!-- 원본 대시보드 스타일시트 (원본 그대로 사용) -->
   <link rel="stylesheet" href="index.css">
-  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+
+  <!-- Vercel Web Analytics 큐 초기화 -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+
+  <!-- PIN 게이트 전용 스타일 (index.css에는 게이트 스타일이 없으므로 최소 인라인 정의) -->
+  <style>
+    .kl-gate {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: radial-gradient(120% 120% at 50% 0%, #0b0716 0%, #040209 60%, #020106 100%);
+    }
+    .kl-gate-card {
+      width: 100%; max-width: 420px;
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 18px; padding: 42px 30px; text-align: center;
+    }
+    .kl-gate-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; letter-spacing: 0.5px; color: #FFFFFF; }
+    .kl-gate-logo span { color: var(--primary-purple); text-shadow: 0 0 15px var(--primary-purple-glow); }
+    .kl-gate-badge {
+      display: inline-block; margin-top: 8px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.22em;
+      color: var(--accent-fuchsia); border: 1px solid var(--border-color); border-radius: 99px; padding: 3px 12px;
+    }
+    .kl-gate-title { margin-top: 18px; font-size: 1.15rem; font-weight: 800; color: #F1F5F9; }
+    .kl-gate-desc { margin-top: 8px; font-size: 0.9rem; color: #94A3B8; line-height: 1.6; }
+    .kl-gate-input {
+      width: 100%; margin-top: 20px; padding: 14px 16px; font-size: 1.2rem; font-family: inherit;
+      text-align: center; letter-spacing: 0.5em; color: #F1F5F9;
+      background: rgba(0, 0, 0, 0.35); border: 1.5px solid var(--border-hover); border-radius: 12px;
+    }
+    .kl-gate-input:focus { border-color: var(--primary-purple); outline: none; }
+    .kl-gate-error { min-height: 1.3em; margin-top: 12px; font-size: 0.85rem; color: #f87171; font-weight: 600; }
+    .kl-gate-note { margin-top: 18px; font-size: 0.78rem; color: #64748B; }
+    .kl-gate.kl-shake .kl-gate-card { animation: klshake 0.4s; }
+    @keyframes klshake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .kl-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    body.kl-gate-locked { overflow: hidden; }
+
+    /* 관리자 관제 패널 보조 스타일 (index.css 토큰 재사용) */
+    .db-card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;
+      padding: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; min-height: 0;
+    }
+    .db-card-head { display: flex; flex-direction: column; gap: 0.25rem; }
+    .db-card-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: #FFFFFF; }
+    .db-card-subtitle { font-size: 0.8rem; color: #94A3B8; }
+    .locker-legend { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.72rem; color: #94A3B8; }
+    .locker-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+    .legend-dot.gray { background: #64748B; }
+    .legend-dot.green { background: #10b981; }
+    .legend-dot.orange { background: #f59e0b; }
+    .legend-dot.fuchsia { background: var(--accent-fuchsia); }
+    .legend-dot.red { background: var(--accent-red); }
+    .telemetry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .telemetry-cell {
+      background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 0.55rem 0.4rem; text-align: center;
+    }
+    .telemetry-label { font-size: 0.6rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; }
+    .telemetry-value { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: var(--primary-purple); }
+    .event-log-container { flex: 1; min-height: 130px; max-height: 220px; }
+  </style>
 </head>
 <body>
 
-  <div id="gate-overlay" role="dialog" aria-modal="true" aria-labelledby="gate-title">
-    <div class="gate-box">
-      <div class="gate-logo">KEY <span>LOCKER</span></div>
-      <p class="gate-title" id="gate-title">보호된 데모</p>
-      <p class="gate-desc">본 데모는 열람 권한이 부여된 담당자에게만 공개됩니다.<br>전송받은 비밀번호를 입력해 주십시오.</p>
-      <form id="gate-form" autocomplete="off">
-        <label for="gate-input" class="sr-only">4자리 비밀번호</label>
-        <input id="gate-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" aria-describedby="gate-error">
-        <button type="submit" class="gate-btn">입장</button>
-      </form>
-      <p id="gate-error" class="gate-error" role="alert" aria-live="polite"></p>
+  <!-- ===== PIN GATE ===== -->
+  <div id="gate-overlay" class="kl-gate" role="dialog" aria-modal="true" aria-labelledby="kl-gate-title" aria-describedby="kl-gate-desc">
+    <div class="kl-gate-card">
+      <div class="kl-gate-logo">KEYLOCKER <span>AI</span></div>
+      <div class="kl-gate-badge">VEHICLE KEY HUB · DASHBOARD</div>
+      <p class="kl-gate-title" id="kl-gate-title">실시간 대시보드 보안 인증</p>
+      <p class="kl-gate-desc" id="kl-gate-desc">본 데모는 열람 권한이 부여된 담당자에게만 공개됩니다.<br>전송받은 4자리 PIN을 입력해 주십시오.</p>
+      <label for="gate-input" class="kl-sr-only">4자리 PIN 번호</label>
+      <input id="gate-input" class="kl-gate-input" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" maxlength="4" autocomplete="off" aria-describedby="gate-error">
+      <p id="gate-error" class="kl-gate-error" role="alert" aria-live="polite"></p>
+      <p class="kl-gate-note">문의 · 열람 권한 요청: 에이아이큐브(AICube) 제안팀</p>
     </div>
   </div>
 
+  <!-- ===== HEADER ===== -->
   <header>
     <div class="logo-container">
-      <div class="logo-text"><span>KEY</span> <span>LOCKER</span></div>
-      <div class="logo-badge">VEHICLE KEY HUB</div>
-      <span class="logo-by">by AICube</span>
+      <div class="logo-text"><span>KEYLOCKER</span> <span>AI</span></div>
+      <div class="logo-badge">실시간 대시보드</div>
+      <span style="font-size:0.72rem;font-weight:700;color:#64748B;letter-spacing:0.08em;border-left:1px solid var(--border-color);padding-left:0.75rem;">by AICube</span>
     </div>
-    <a class="back-link" href="index.html">← 제안서 본문</a>
+    <a href="./" title="제안서 본문으로 이동" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.1rem;border:1px solid var(--border-color);border-radius:9999px;color:#94A3B8;font-family:var(--font-display);font-weight:600;font-size:0.9rem;">← 제안서 본문</a>
   </header>
 
+  <!-- ===== MAIN: DASHBOARD / SIMULATOR ===== -->
   <main>
+    <!-- 로드 즉시 기본 표시: dashboard-container 에 active 선지정 -->
     <div class="dashboard-container active" id="dashboard-container">
+
+      <!-- 상단 데모 제어 바 -->
       <div class="col-12 demo-config-bar">
-        <div>
+        <div class="config-left">
           <div class="config-title">실시간 키 보관함 키오스크 데모</div>
-          <p class="config-subtitle">21.5" 터치 UI와 20구 보관함 관리 대시보드를 시뮬레이션합니다.</p>
+          <div class="config-subtitle">21.5" 터치 UI와 20구 전자락 캐비닛의 실시간 연동을 시뮬레이션합니다.</div>
         </div>
         <div class="config-right">
-          <div style="display:flex;align-items:center;gap:0.5rem;">
-            <span style="font-size:0.8rem;color:#94A3B8;">자동 재생</span>
-            <label class="switch-toggle"><input type="checkbox" id="checkbox-autoplay"><span class="switch-slider"></span></label>
+          <div class="orientation-toggle" role="group" aria-label="키오스크 화면 방향">
+            <button class="toggle-btn active" id="btn-device-landscape" type="button">가로 16:9</button>
+            <button class="toggle-btn" id="btn-device-portrait" type="button">세로 9:16</button>
           </div>
-          <select id="select-scenario" class="custom-select" aria-label="데모 시나리오 선택">
-            <option value="deposit">시나리오: 차량키 맡기기</option>
-            <option value="pickup">시나리오: 차량키 찾기</option>
-            <option value="technician">시나리오: 정비사 메뉴</option>
-          </select>
-          <button class="btn-secondary" id="btn-reset-demo" style="padding:0.5rem 1rem;font-size:0.85rem;">데모 리셋</button>
+          <label style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:#94A3B8;">
+            자동 재생
+            <span class="switch-toggle"><input type="checkbox" id="checkbox-autoplay" checked><span class="switch-slider"></span></span>
+          </label>
+          <div class="select-wrapper">
+            <label for="select-scenario" class="kl-sr-only">데모 시나리오 선택</label>
+            <select id="select-scenario" class="custom-select">
+              <option value="reception">시나리오: 차량키 맡기기 (Deposit)</option>
+              <option value="treatment">시나리오: 차량키 찾기 (Pick Up)</option>
+              <option value="pharmacy">시나리오: 정비사 회수 (Staff)</option>
+              <option value="fault">시나리오: 장애 (문 미닫힘)</option>
+            </select>
+          </div>
+          <button class="btn-reset-demo" id="btn-reset-demo" type="button">데모 리셋</button>
         </div>
       </div>
 
-      <div class="col-7 device-frame-container">
-        <div class="device-frame" id="device-frame">
+      <!-- 좌측: 키오스크 단말 시뮬레이터 -->
+      <div class="col-8 device-frame-container">
+        <div class="device-frame landscape-mode" id="device-frame">
+          <div class="device-bezel-sensor"><span class="device-camera"></span></div>
           <div class="device-screen">
+
+            <!-- 상단 상태바 -->
             <div class="screen-status-bar">
-              <div><span class="screen-logo">KeyLocker</span><span class="screen-badge">ONLINE</span></div>
-              <div id="screen-clock">--:--:--</div>
+              <div>
+                <span class="screen-logo">KeyLocker</span>
+                <span class="screen-status-badge">ONLINE</span>
+              </div>
+              <div class="bar-right"><span id="screen-clock">--:--:--</span></div>
             </div>
-            <div class="kiosk-body" id="kiosk-body">
-              <!-- Dynamic kiosk UI rendered by app.js -->
+
+            <!-- 텔레메트리 오버레이 (장식) -->
+            <div class="screen-telemetry-overlay" aria-hidden="true">
+              <span>RS485 · OK</span>
+              <span>PING 14ms</span>
+              <span>IP65</span>
             </div>
+
+            <!-- 대화/캐비닛 영역 -->
+            <div class="screen-dialogue-area">
+
+              <!-- 키오스크 화면 (사용자 터치 인터랙션) -->
+              <div class="screen-panel patient-side active-turn" id="screen-panel-patient">
+                <div class="screen-panel-header">
+                  <span class="panel-badge-lang">
+                    <span id="flag-patient">📟</span>
+                    <span id="label-patient-lang-name">KIOSK SCREEN</span>
+                  </span>
+                  <span class="panel-role">터치 입력</span>
+                </div>
+                <div class="screen-panel-body scrollable-messages" id="patient-messages-container">
+                  <!-- app.js 가 차량키 맡기기/찾기/정비사/장애 시나리오 대화 버블을 렌더링 -->
+                </div>
+              </div>
+
+              <!-- 캐비닛 모니터 (20구 보관함 실시간 상태) -->
+              <div class="screen-panel staff-side dimmed-turn" id="screen-panel-staff">
+                <div class="screen-panel-header">
+                  <span class="panel-badge-lang">
+                    <span aria-hidden="true">🔐</span>
+                    <span>LOCKER CABINET</span>
+                  </span>
+                  <span class="panel-role">20구 캐비닛</span>
+                </div>
+                <div class="screen-panel-body">
+                  <div id="locker-grid-cabinet" role="img" aria-label="20구 보관함 실시간 상태 격자">
+                    <!-- app.js renderCabinetLockerGrid() 가 20개 셀을 렌더링 -->
+                  </div>
+                  <div class="scrollable-messages" id="staff-messages-container" style="flex:0 0 auto;max-height:0;overflow:hidden;padding:0;" aria-hidden="true">
+                    <!-- 하드웨어 로그 보조 컨테이너 (예약) -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 하단 컨트롤 바 -->
+            <div class="screen-footer-bar">
+              <div class="footer-control-left">
+                <button class="footer-icon-btn" type="button" aria-label="음량" tabindex="-1">🔊</button>
+                <button class="footer-icon-btn" type="button" aria-label="설정" tabindex="-1">⚙️</button>
+              </div>
+              <div class="footer-mic-area">
+                <button class="live-mic-btn" id="btn-live-mic" type="button" aria-label="다음 단계 진행">
+                  <span class="mic-wave-pulse" aria-hidden="true"></span>▶
+                </button>
+                <div class="canvas-wave-box">
+                  <canvas class="live-wave-canvas" id="canvas-live-audio" width="140" height="32"></canvas>
+                </div>
+              </div>
+              <div class="footer-control-right">
+                <button class="btn-secondary" id="btn-next-turn" type="button" style="display:none;padding:0.4rem 0.9rem;font-size:0.8rem;">다음 단계 ⏭️</button>
+                <span class="medical-domain-badge">KEY HUB</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
 
-      <div class="col-5 db-card">
-        <div>
-          <span class="db-card-title">관리자 대시보드 — 20구 보관함</span>
-          <span class="db-card-subtitle">실시간 열쇠함 상태 (초록:가능 · 주황:대여중 · 빨강:열림)</span>
+      <!-- 우측: 관리자 관제 패널 -->
+      <div class="col-4 db-card">
+        <div class="db-card-head">
+          <span class="db-card-title">관리자 관제 — 실시간 이벤트</span>
+          <span class="db-card-subtitle">보관함 상태(회색:빈함 · 초록:가용 · 주황:보관 · 자홍:열림 · 빨강:오류)와 시스템 로그를 실시간 스캔합니다.</span>
         </div>
-        <div class="locker-legend">
-          <span><span class="legend-dot gray"></span>EMPTY</span>
-          <span><span class="legend-dot green"></span>AVAILABLE</span>
-          <span><span class="legend-dot orange"></span>RENTED</span>
-          <span><span class="legend-dot red"></span>DOOR_OPEN</span>
+
+        <div class="locker-legend" aria-hidden="true">
+          <span><span class="legend-dot gray"></span>빈함</span>
+          <span><span class="legend-dot green"></span>가용</span>
+          <span><span class="legend-dot orange"></span>보관</span>
+          <span><span class="legend-dot fuchsia"></span>열림</span>
+          <span><span class="legend-dot red"></span>오류</span>
         </div>
-        <div class="locker-grid" id="locker-grid"></div>
-        <dl class="locker-detail" id="locker-detail">
-          <dt>선택 보관함</dt><dd id="detail-locker">—</dd>
-          <dt>상태</dt><dd id="detail-status">—</dd>
-          <dt>차량번호</dt><dd id="detail-plate">—</dd>
-        </dl>
-        <button class="btn-secondary" id="btn-test-door" style="padding:0.5rem;font-size:0.8rem;width:100%;">선택 함 도어 테스트 (원격)</button>
+
+        <div class="telemetry-grid" aria-label="기기 텔레메트리">
+          <div class="telemetry-cell"><div class="telemetry-label">보관함</div><div class="telemetry-value">20구</div></div>
+          <div class="telemetry-cell"><div class="telemetry-label">방수·방진</div><div class="telemetry-value">IP65</div></div>
+          <div class="telemetry-cell"><div class="telemetry-label">경보 기준</div><div class="telemetry-value">60초</div></div>
+        </div>
+
+        <span class="db-card-subtitle" style="margin-top:0.25rem;">이벤트 로그</span>
         <div class="event-log-container" id="event-log-box">
-          <div class="log-entry"><span class="log-time">[--:--:--]</span> <span class="log-msg">KeyLocker 시스템 초기화 완료.</span></div>
+          <div class="log-entry"><span class="log-time">[--:--:--]</span> <span class="log-msg">KeyLocker 관제 시스템 초기화 대기 중…</span></div>
         </div>
       </div>
+
     </div>
   </main>
 
+  <!-- 원본 대시보드/시뮬레이터 로직 (원본 그대로 사용) -->
   <script src="app.js"></script>
+
+  <!-- PIN 게이트 로직 (index.html·dashboard.html 동일 세션 키 — 한쪽에서 인증하면 양쪽 모두 열람) -->
   <script>
-    (function () {
-      const GATE_PASSWORD = "4342";
-      const STORAGE_KEY = "keylocker_proposal_auth";
-      const overlay = document.getElementById("gate-overlay");
-      const form = document.getElementById("gate-form");
-      const input = document.getElementById("gate-input");
-      const errorEl = document.getElementById("gate-error");
-      function unlock(fire) {
-        overlay.classList.add("gate-hidden");
-        document.body.classList.remove("gate-locked");
-        const first = document.querySelector("main a, main button, header a");
-        if (fire && first) first.focus();
-        if (fire && typeof window.va === "function") {
-          window.va("event", { name: "proposal_unlocked", data: {} });
-        }
+  (function () {
+    "use strict";
+    var GATE_PASSWORD = "4342";
+    var STORAGE_KEY = "keylocker_proposal13_auth";
+    var overlay = document.getElementById("gate-overlay");
+    var input = document.getElementById("gate-input");
+    var errorEl = document.getElementById("gate-error");
+
+    function unlock(fire) {
+      if (overlay) overlay.remove();
+      document.body.classList.remove("kl-gate-locked");
+      if (fire && typeof window.va === "function") {
+        window.va("event", { name: "proposal_unlocked", data: { source: "dashboard_gate" } });
       }
-      if (sessionStorage.getItem(STORAGE_KEY) === "ok") { unlock(false); return; }
-      document.body.classList.add("gate-locked");
+    }
+
+    if (sessionStorage.getItem(STORAGE_KEY) === "ok") {
+      unlock(false);
+      return;
+    }
+
+    document.body.classList.add("kl-gate-locked");
+
+    if (input) {
       setTimeout(function () { input.focus(); }, 100);
-      input.addEventListener("input", function () { input.value = input.value.replace(/[^0-9]/g, ""); });
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (input.value === GATE_PASSWORD) {
-          sessionStorage.setItem(STORAGE_KEY, "ok");
-          errorEl.textContent = "";
-          unlock(true);
-        } else {
-          errorEl.textContent = "비밀번호가 올바르지 않습니다.";
-          input.value = "";
-          input.focus();
-          overlay.querySelector(".gate-box").classList.add("gate-shake");
-          setTimeout(function () { overlay.querySelector(".gate-box").classList.remove("gate-shake"); }, 400);
-        }
+      input.addEventListener("input", function () {
+        input.value = input.value.replace(/[^0-9]/g, "");
+        if (input.value.length === 4) verify(input.value);
       });
-    })();
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") verify(input.value);
+      });
+    }
+
+    function verify(val) {
+      if (val === GATE_PASSWORD) {
+        sessionStorage.setItem(STORAGE_KEY, "ok");
+        if (errorEl) errorEl.textContent = "";
+        unlock(true);
+      } else {
+        if (errorEl) errorEl.textContent = "비밀번호가 올바르지 않습니다. 다시 입력해 주세요.";
+        if (overlay) overlay.classList.add("kl-shake");
+        if (input) { input.value = ""; input.focus(); }
+        setTimeout(function () { if (overlay) overlay.classList.remove("kl-shake"); }, 450);
+      }
+    }
+  })();
   </script>
+
+  <!-- Vercel Web Analytics 수집 스크립트 -->
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

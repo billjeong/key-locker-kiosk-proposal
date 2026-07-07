@@ -12,26 +12,29 @@
   <meta property="og:description" content="정비소·서비스센터를 위한 실외용 무인 차량 키 보관함 키오스크 도입 제안.">
   <meta property="og:site_name" content="키 보관함 키오스크 제안">
   <meta name="twitter:card" content="summary">
-  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
+
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css');
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
 
     :root {
-      --bg: #050811;
-      --bg-2: #0a0e1a;
-      --card: rgba(255, 255, 255, 0.025);
+      --bg: #040209;
+      --bg-2: #0a0714;
+      --card: rgba(255, 255, 255, 0.03);
       --card-hover: rgba(255, 255, 255, 0.06);
-      --line: rgba(255, 255, 255, 0.07);
-      --line-strong: rgba(255, 255, 255, 0.15);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
       --ink: #F1F5F9;
       --ink-dim: #94A3B8;
       --ink-faint: #64748B;
-      --brand: #3b82f6;            /* KeyLocker primary blue */
-      --brand-dim: rgba(59, 130, 246, 0.14);
-      --cyan: #06b6d4;
-      --green: #22c55e;
-      --red: #ef4444;
+      --brand: #8b5cf6;            /* KeyLocker purple */
+      --brand-dim: rgba(139, 92, 246, 0.14);
+      --accent: #d946ef;           /* fuchsia */
+      --green: #10b981;
       --font-display: 'Outfit', 'Pretendard Variable', Pretendard, sans-serif;
       --font-sans: 'Pretendard Variable', Pretendard, -apple-system, system-ui, 'Apple SD Gothic Neo', sans-serif;
       --maxw: 1080px;
@@ -41,8 +44,8 @@
     body {
       background: var(--bg);
       background-image:
-        radial-gradient(circle at 12% 8%, rgba(59, 130, 246, 0.07) 0%, transparent 38%),
-        radial-gradient(circle at 88% 92%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+        radial-gradient(circle at 12% 8%, rgba(139, 92, 246, 0.08) 0%, transparent 38%),
+        radial-gradient(circle at 88% 92%, rgba(217, 70, 239, 0.06) 0%, transparent 40%);
       color: var(--ink);
       font-family: var(--font-sans);
       line-height: 1.75;
@@ -53,32 +56,32 @@
     img { max-width: 100%; display: block; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .container { max-width: var(--maxw); margin: 0 auto; padding: 0 22px; }
-    :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
     /* ===== PIN GATE ===== */
     .gate { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px;
-      background: radial-gradient(120% 120% at 50% 0%, #0a0e1a 0%, #050811 60%, #03040a 100%); }
+      background: radial-gradient(120% 120% at 50% 0%, #0b0716 0%, #040209 60%, #020106 100%); }
     .gate__card { width: 100%; max-width: 420px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 42px 30px; text-align: center; }
     .gate__logo { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; letter-spacing: 0.5px; }
-    .gate__logo .b { color: var(--brand); }
-    .gate__badge { display: inline-block; margin-top: 8px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.22em; color: var(--cyan); border: 1px solid var(--line); border-radius: 99px; padding: 3px 12px; }
+    .gate__logo .k { color: var(--brand); }
+    .gate__badge { display: inline-block; margin-top: 8px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.22em; color: var(--accent); border: 1px solid var(--line); border-radius: 99px; padding: 3px 12px; }
     .gate__title { margin-top: 18px; font-size: 1.15rem; font-weight: 800; }
     .gate__sub { margin-top: 8px; font-size: 0.9rem; color: var(--ink-dim); }
     .gate__input { width: 100%; margin-top: 20px; padding: 14px 16px; font-size: 1.2rem; font-family: inherit; text-align: center; letter-spacing: 0.5em;
       color: var(--ink); background: rgba(0,0,0,0.35); border: 1.5px solid var(--line-strong); border-radius: 12px; }
     .gate__input:focus { border-color: var(--brand); }
-    .gate__error { min-height: 1.3em; margin-top: 12px; font-size: 0.85rem; color: var(--red); font-weight: 600; }
+    .gate__error { min-height: 1.3em; margin-top: 12px; font-size: 0.85rem; color: #f87171; font-weight: 600; }
     .gate__note { margin-top: 18px; font-size: 0.78rem; color: var(--ink-faint); }
     .gate.shake .gate__card { animation: shake .4s; }
     @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
 
     /* ===== HEADER ===== */
-    .header { position: sticky; top: 0; z-index: 100; background: rgba(5, 8, 17, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+    .header { position: sticky; top: 0; z-index: 100; background: rgba(4, 2, 9, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
     .header__inner { display: flex; align-items: center; justify-content: space-between; height: 62px; }
     .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; }
     .brand__bar { width: 4px; height: 22px; background: var(--brand); border-radius: 2px; }
     .brand__by { font-size: 0.72rem; font-weight: 700; color: var(--ink-faint); letter-spacing: 0.08em; border-left: 1px solid var(--line); padding-left: 10px; }
-    .nav { display: flex; gap: 22px; font-size: 0.88rem; color: var(--ink-dim); }
+    .nav { display: flex; gap: 20px; font-size: 0.88rem; color: var(--ink-dim); }
     .nav a:hover { color: var(--ink); }
     .nav__cta { color: var(--brand); font-weight: 700; }
     .nav-toggle { display: none; background: none; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
@@ -91,11 +94,11 @@
     .hero { padding: 92px 0 72px; }
     .eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.18em; color: var(--brand); text-transform: uppercase; }
     .hero__title { margin-top: 14px; font-family: var(--font-display); font-size: clamp(2rem, 5.4vw, 3.3rem); font-weight: 800; line-height: 1.22; }
-    .hero__title .q { color: var(--cyan); }
-    .hero__lead { margin-top: 20px; max-width: 640px; font-size: 1.05rem; color: var(--ink-dim); }
+    .hero__title .q { color: var(--brand); }
+    .hero__lead { margin-top: 20px; max-width: 660px; font-size: 1.05rem; color: var(--ink-dim); }
     .hero__lead strong { color: var(--ink); }
-    .hero__from { margin-top: 16px; font-size: 0.92rem; color: var(--ink-dim); }
-    .hero__from strong { color: var(--ink); }
+    .hero__meta { margin-top: 14px; font-size: 0.92rem; color: var(--ink-dim); }
+    .hero__meta strong { color: var(--ink); }
     .hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; font-family: inherit; cursor: pointer; border: 1px solid transparent; }
     .btn--primary { background: var(--brand); color: #fff; }
@@ -124,7 +127,7 @@
     /* ===== BENTO ===== */
     .bento { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 14px; margin-top: 38px; }
     .bento__cell { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 26px 24px; }
-    .bento__cell--hl { background: linear-gradient(160deg, var(--brand-dim) 0%, var(--card) 55%); border-color: rgba(59, 130, 246, 0.35); }
+    .bento__cell--hl { background: linear-gradient(160deg, var(--brand-dim) 0%, var(--card) 55%); border-color: rgba(139, 92, 246, 0.35); }
     .bento__num { font-family: var(--font-display); font-size: 2rem; font-weight: 800; line-height: 1.1; }
     .bento__num small { font-size: 1rem; color: var(--ink-dim); font-weight: 600; }
     .bento__label { margin-top: 8px; font-size: 0.88rem; color: var(--ink-dim); }
@@ -132,6 +135,7 @@
 
     /* ===== CARDS ===== */
     .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 34px; }
+    .card-grid--3 { grid-template-columns: repeat(3, 1fr); }
     .card { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 26px 24px; }
     .card h3 { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
     .card h3 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); flex: none; }
@@ -145,9 +149,9 @@
     .flow__node { border: 1px solid var(--line); border-radius: 14px; background: var(--bg-2); padding: 18px 22px; text-align: center; }
     .flow__node strong { display: block; font-size: 0.98rem; }
     .flow__node small { color: var(--ink-dim); font-size: 0.82rem; }
-    .flow__node--core { border-color: rgba(59, 130, 246, 0.45); background: linear-gradient(160deg, var(--brand-dim), var(--bg-2)); }
+    .flow__node--core { border-color: rgba(139, 92, 246, 0.45); background: linear-gradient(160deg, var(--brand-dim), var(--bg-2)); }
     .flow__arrow { text-align: center; color: var(--ink-faint); padding: 6px 0; }
-    .flow__pill { display: inline-block; margin-bottom: 6px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; color: var(--cyan); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
+    .flow__pill { display: inline-block; margin-bottom: 6px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; color: var(--accent); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
     .flow__caption { text-align: center; font-size: 0.8rem; color: var(--ink-faint); margin-top: 16px; }
 
     /* ===== TABLE ===== */
@@ -158,30 +162,37 @@
     .cmp tbody th { color: var(--ink); font-weight: 700; white-space: nowrap; }
     .cmp tbody td { color: var(--ink-dim); }
     .cmp tbody tr:last-child th, .cmp tbody tr:last-child td { border-bottom: none; }
-    .cmp td.good { color: var(--green); }
-    .cmp td.bad { color: var(--red); }
     .table__caption { margin-top: 12px; font-size: 0.8rem; color: var(--ink-faint); }
 
-    /* ===== CALLOUT ===== */
+    /* ===== CALLOUT / METRICS ===== */
     .callout { border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 12px; background: var(--card); padding: 18px 22px; margin-top: 26px; font-size: 0.92rem; color: var(--ink-dim); }
     .callout strong { color: var(--ink); }
+    .callout a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+    .metric { border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 20px; text-align: center; }
+    .metric__num { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; }
+    .metric__label { margin-top: 6px; font-size: 0.82rem; color: var(--ink-dim); }
+    .footnote { margin-top: 14px; font-size: 0.78rem; color: var(--ink-faint); line-height: 1.6; }
 
-    /* ===== DEMO LINK PANEL ===== */
-    .demo-panel { border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 16px; background: linear-gradient(160deg, var(--brand-dim), var(--card)); padding: 26px 24px; margin-top: 34px;
-      display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
-    .demo-panel__txt strong { display: block; font-size: 1.02rem; font-weight: 800; }
-    .demo-panel__txt span { font-size: 0.88rem; color: var(--ink-dim); }
+    /* ===== CONGESTION WIDGET ===== */
+    .widget { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 24px; margin-top: 34px; }
+    .widget__head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.9rem; }
+    .widget__head strong { font-size: 0.95rem; }
+    .widget__tag { color: var(--accent); font-weight: 700; }
+    .widget input[type="range"] { width: 100%; margin-top: 18px; accent-color: var(--brand); }
+    .widget__scale { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--ink-faint); margin-top: 6px; }
+    .widget__note { margin-top: 14px; font-size: 0.78rem; color: var(--ink-faint); }
+    .widget__note a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
     /* ===== ROADMAP ===== */
     .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 34px; }
     .phase { border: 1px solid var(--line); border-radius: 16px; background: var(--card); padding: 26px 24px; }
-    .phase--now { border-color: rgba(59, 130, 246, 0.4); }
+    .phase--now { border-color: rgba(139, 92, 246, 0.45); }
     .phase__no { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 800; font-family: var(--font-display); }
     .phase h3 { margin-top: 12px; font-size: 1.02rem; font-weight: 800; }
-    .phase .when { font-size: 0.8rem; color: var(--brand); font-weight: 700; }
+    .phase .when { display: block; font-size: 0.8rem; color: var(--brand); font-weight: 700; margin-top: 4px; }
     .phase ul { margin: 12px 0 0 18px; font-size: 0.9rem; color: var(--ink-dim); }
     .phase li { margin-top: 6px; }
-    .phase li.done { color: var(--green); }
 
     /* ===== FAQ ===== */
     .faq { margin-top: 30px; border-top: 1px solid var(--line); }
@@ -192,7 +203,7 @@
     .faq .a { padding: 0 4px 20px; font-size: 0.92rem; color: var(--ink-dim); max-width: 720px; }
 
     /* ===== CTA ===== */
-    .cta { padding: 90px 0; text-align: center; background: linear-gradient(180deg, transparent, rgba(59, 130, 246, 0.06)); border-top: 1px solid var(--line); }
+    .cta { padding: 90px 0; text-align: center; background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.06)); border-top: 1px solid var(--line); }
     .cta__title { font-family: var(--font-display); font-size: clamp(1.5rem, 3.6vw, 2.2rem); font-weight: 800; line-height: 1.3; margin-top: 12px; }
     .cta__lead { margin: 16px auto 0; max-width: 560px; color: var(--ink-dim); }
     .cta__btns { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
@@ -217,10 +228,9 @@
       .nav-toggle { display: block; }
       .bento { grid-template-columns: 1fr 1fr; }
       .bento__cell--wide { grid-column: span 2; }
-      .card-grid, .phase-grid { grid-template-columns: 1fr; }
+      .card-grid, .card-grid--3, .phase-grid, .metric-row { grid-template-columns: 1fr; }
       .hero { padding: 64px 0 52px; }
       .section { padding: 56px 0; }
-      .demo-panel { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -229,12 +239,12 @@
   <!-- ===== PIN GATE ===== -->
   <div id="gate" class="gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
     <div class="gate__card">
-      <div class="gate__logo">KEY <span class="b">LOCKER</span></div>
-      <div class="gate__badge">VEHICLE KEY HUB · PROPOSAL</div>
+      <div class="gate__logo">KEYLOCKER <span class="k">AI</span></div>
+      <div class="gate__badge">VEHICLE KEY HUB · DOCUMENT</div>
       <p class="gate__title" id="gate-title">제안서 보안 인증</p>
       <p class="gate__sub">본 제안서는 열람 권한이 부여된 담당자에게만 공개됩니다.<br>전송받은 4자리 PIN을 입력해 주십시오.</p>
       <label for="gate-input" class="sr-only">4자리 PIN 번호</label>
-      <input id="gate-input" class="gate__input" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" maxlength="4" autocomplete="off" aria-describedby="gate-error" autofocus>
+      <input id="gate-input" class="gate__input" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="••••" maxlength="4" autocomplete="off" aria-describedby="gate-error">
       <p id="gate-error" class="gate__error" role="alert" aria-live="polite"></p>
       <p class="gate__note">문의 · 열람 권한 요청: 에이아이큐브(AICube) 제안팀</p>
     </div>
@@ -247,14 +257,14 @@
       <div class="container header__inner">
         <a href="#top" class="brand" aria-label="무인 차량 키 보관함 키오스크 제안 처음으로">
           <span class="brand__bar" aria-hidden="true"></span>
-          KEY <span style="color:var(--brand)">LOCKER</span>
+          KEYLOCKER <span style="color:var(--brand)">AI</span>
           <span class="brand__by">by AICube</span>
         </a>
         <nav class="nav" aria-label="주요 섹션">
           <a href="#problem">문제</a>
           <a href="#solution">제안 구조</a>
           <a href="#scenario">시나리오</a>
-          <a href="#compare">도입 효과</a>
+          <a href="#durability">실외 내구성</a>
           <a href="#roadmap">로드맵</a>
           <a href="#faq">FAQ</a>
           <a href="#cta" class="nav__cta">미팅 요청</a>
@@ -267,7 +277,7 @@
         <a href="#problem">문제</a>
         <a href="#solution">제안 구조</a>
         <a href="#scenario">시나리오</a>
-        <a href="#compare">도입 효과</a>
+        <a href="#durability">실외 내구성</a>
         <a href="#roadmap">로드맵</a>
         <a href="#faq">FAQ</a>
         <a href="#cta">미팅 요청</a>
@@ -279,29 +289,30 @@
       <!-- HERO -->
       <section class="hero">
         <div class="container">
-          <p class="eyebrow">무인 차량 키 관리 인프라 · AICube 도입 제안</p>
-          <h1 class="hero__title">키 관리의 번거로움을 없애고,<br><span class="q">고객 경험을 높이다</span></h1>
+          <p class="eyebrow">KeyLocker AI · 무인 차량 키 관리 인프라 제안</p>
+          <h1 class="hero__title">무인 차량 키 보관함<br><span class="q">키오스크 제안</span></h1>
           <p class="hero__lead">
-            <strong>21.5인치 터치 디스플레이와 20구 보관함</strong>을 갖춘 스탠드형 무인 키오스크로
-            차량 대여·정비 현장의 키 인수인계를 24시간 자동화합니다.
-            클라우드 API 연동과 전자락·센서 기반 보관함 제어로 확장 가능한 키 관리 인프라를 제안합니다.
+            "키 관리의 번거로움을 없애고, 고객 경험을 높이다."<br>
+            21.5인치 터치 디스플레이와 20구 보관함이 통합된 스탠드형 단말 위에서
+            <strong>실시간 도어 제어, 센서 모니터링, 클라우드 연동 키 관리 인프라</strong>를 결합하여
+            대기 없는 인수·수령을 지원하는 <strong>KeyLocker AI</strong> 솔루션을 제안합니다.
           </p>
-          <p class="hero__from">제안사: <strong>에이아이큐브 (AICube)</strong></p>
+          <p class="hero__meta">제안사 · <strong>에이아이큐브 (AICube)</strong></p>
           <div class="hero__cta">
             <a class="btn btn--primary" href="#cta">도입 미팅 요청</a>
-            <a class="btn btn--ghost" href="dashboard.html" title="키오스크·관리자 대시보드 시뮬레이션">실시간 키오스크 데모</a>
+            <a class="btn btn--ghost" href="dashboard.html" title="키오스크·보관함 실시간 연동 데모">실시간 키오스크 데모</a>
           </div>
           <ul class="hero__chips" aria-label="핵심 키워드">
-            <li>21.5인치 FHD 터치</li>
-            <li>20구 개별 전자락</li>
-            <li>24시간 무인 운영</li>
-            <li>HTTPS 클라우드 API 연동</li>
-            <li>RS485·USB IO보드 제어</li>
-            <li>운영 방식의 전환</li>
+            <li>21.5" FHD 터치 디스플레이</li>
+            <li>20구 전자락 캐비닛</li>
+            <li>IP65 방수·방진 아웃도어</li>
+            <li>RS485 릴레이 도어 제어</li>
+            <li>클라우드 API 실시간 연동</li>
+            <li>도어 센서 실시간 스캔</li>
           </ul>
           <figure class="hero__visual reveal">
-            <img src="assets/slide1.png" alt="21.5인치 키보관함 키오스크 3D 렌더링">
-            <figcaption class="hero__visual-note">21.5인치 터치 디스플레이 × 20구 보관함 스탠드형 키오스크 (3D 렌더링 시안 — 시제품 제작 후 실물 촬영본으로 교체)</figcaption>
+            <img src="assets/slide1.png" alt="KeyLocker 차량 키 보관함 키오스크 3D 렌더링">
+            <figcaption class="hero__visual-note">KeyLocker 차량 키 보관함 키오스크 렌더링 시안 — 시제품 단계에서 실촬영본으로 교체</figcaption>
           </figure>
         </div>
       </section>
@@ -311,28 +322,28 @@
         <div class="container">
           <div class="bento">
             <div class="bento__cell bento__cell--hl bento__cell--wide reveal">
-              <div class="bento__num">21.5" <small>× 20구</small></div>
-              <div class="bento__label">FHD 터치 디스플레이와 20구 개별 전자락 보관함 — 차량번호·PIN만으로 키 맡기기·찾기를 자동화</div>
+              <div class="bento__num">21.5" <small>FHD 터치</small></div>
+              <div class="bento__label">고해상도 터치패널과 20구 전자락 캐비닛이 하나로 통합된 스탠드형 단말 — 화면 입력과 물리 도어가 실시간 연동</div>
             </div>
             <div class="bento__cell reveal">
-              <div class="bento__num">24시간</div>
-              <div class="bento__label">관리자 상주 없이 무인 키 보관·출고</div>
+              <div class="bento__num">20구</div>
+              <div class="bento__label">개별 전자락·도어 열림 감지 센서 장착 보관함</div>
             </div>
             <div class="bento__cell reveal">
-              <div class="bento__num">1분 이내</div>
-              <div class="bento__label">차량번호·PIN 입력 후 즉시 개방 — 수동 관리 평균 대기 10~15분 대비</div>
+              <div class="bento__num">IP65</div>
+              <div class="bento__label">방수·방진 하우징 + 온도 감지 냉각 팬의 아웃도어 설계</div>
             </div>
             <div class="bento__cell reveal">
-              <div class="bento__num">개별 제어</div>
-              <div class="bento__label">RS485/USB IO보드 + 도어 센서로 20구를 함마다 제어·감지</div>
+              <div class="bento__num">60초</div>
+              <div class="bento__label">도어 미닫힘 지속 시 관리자 경보 알림 기준</div>
             </div>
             <div class="bento__cell reveal">
-              <div class="bento__num">HTTPS·WSS</div>
-              <div class="bento__label">클라우드 API 서버 연동 — 이력 저장·원격 모니터링·원격 제어</div>
+              <div class="bento__num">3종</div>
+              <div class="bento__label">이용 시나리오 — 키 맡기기 · 키 찾기 · 정비사 회수</div>
             </div>
             <div class="bento__cell reveal">
-              <div class="bento__num">3단계</div>
-              <div class="bento__label">1대 시제품 PoC → 40대 양산 → 전국 서비스센터 확장</div>
+              <div class="bento__num">1대 <small>→ 40대</small></div>
+              <div class="bento__label">시제품 1대 시범 운영에서 40대 양산 보급으로 확장</div>
             </div>
           </div>
         </div>
@@ -342,33 +353,12 @@
       <section class="section" aria-labelledby="exec-title">
         <div class="container">
           <p class="eyebrow">경영진 요약</p>
-          <h2 class="section__title" id="exec-title">무인 키오스크가 가져올<br>운영 방식의 전환</h2>
+          <h2 class="section__title" id="exec-title">비대면 차량 키 관리 자동화로<br>원무 운영 생산성을 높입니다</h2>
           <p class="section__lead">
-            무인 키 보관함 키오스크는 단순 자동 장치가 아니라, <strong>차량 서비스 운영 구조를 바꾸는 인프라</strong>입니다.
-            고객 편의, 직원 업무 효율, 관리자 원격 제어를 동시에 실현합니다.
+            KeyLocker AI 무인 차량 키 보관 솔루션은 단순한 하드웨어의 도입이 아닙니다.
+            인수인계 과정에서 누적되는 <strong>대기 지연을 해소</strong>하고, 관리자의 <strong>수작업 장부 관리 부담을 없애</strong>
+            정비와 고객 서비스의 본질에만 집중하게 만드는 원무 운영 솔루션입니다.
           </p>
-          <div class="card-grid">
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>고객 만족도 향상</h3>
-              <p>24시간 키 보관·출고가 가능해지고, 차량번호·PIN 입력만으로 대기 시간이 줄어듭니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>운영 효율성 증대</h3>
-              <p>키 관리 업무가 줄어 직원은 정비·상담에 집중하고, 관리자는 원격 모니터링으로 장애에 대응합니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>브랜드 신뢰성 강화</h3>
-              <p>전자락·디지털 로그로 분실·오류를 최소화하고, TLS·이중 인증 보안 설계로 신뢰를 제공합니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>확장 가능한 구조</h3>
-              <p>키오스크는 HTTPS 아웃바운드 연결로만 동작해 현장 네트워크 설정이 간단하고, 다지점 확장이 쉽습니다.</p>
-            </div>
-          </div>
-          <figure class="visual reveal">
-            <img src="assets/slide7.png" alt="고객 만족도·운영 효율·브랜드 신뢰성 결론 비주얼" loading="lazy">
-            <figcaption>이해관계자별 기대 효과 (시안)</figcaption>
-          </figure>
         </div>
       </section>
 
@@ -376,32 +366,43 @@
       <section class="section section--alt" id="problem" aria-labelledby="problem-title">
         <div class="container">
           <p class="eyebrow">문제 정의</p>
-          <h2 class="section__title" id="problem-title">키 관리의 병목, 왜 자동화가 필요한가?</h2>
+          <h2 class="section__title" id="problem-title">키 관리의 병목, 왜 자동화가 필요한가</h2>
           <p class="section__lead">
-            차량 대여·정비에서는 키 인수인계가 늘 병목입니다. 무인 시간에는 키를 맡길 방법이 없고,
-            바쁜 시간에는 열쇠 찾는 대기가 길어집니다. 수동 관리는 <strong>분실 위험과 관리 공수를 동시에</strong> 키웁니다.
+            차량 대여와 정비 서비스에서 키 인수인계는 언제나 병목 현상을 유발합니다.
+            수작업 대장 관리와 키 보관소 혼잡은 직원의 업무 부담을 가중시키고,
+            <strong>일과 외 시간 고객 대응을 불가능하게 만들어</strong> 서비스 신뢰도를 떨어뜨립니다.
           </p>
           <div class="card-grid">
             <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>인수인계 지연</h3>
-              <p>직원·고객 동선이 겹치며 평균 대기 시간이 길어집니다. 대기 스트레스는 서비스 만족도를 떨어뜨립니다.</p>
+              <h3><span class="dot" aria-hidden="true"></span>대기 지연 및 수동 관리 부담</h3>
+              <p>관리자가 직접 보관함을 열고 반납·수령을 기록해야 해 처리 속도가 낮고 분실 우려가 큽니다.</p>
             </div>
             <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>분실·오류 위험</h3>
-              <p>종이 기록과 수동 보관은 실수와 분실을 항상 동반합니다. 누가 언제 키를 가져갔는지 추적이 어렵습니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>무인 시간 서비스 공백</h3>
-              <p>관리자가 상주하지 않는 시간에는 키를 맡기거나 찾을 방법이 없어 서비스가 멈춥니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>관리자 상주 부담</h3>
-              <p>보관함을 직접 열어 키를 꺼내고 반납받는 방식은 관리 공수를 키우고 확장을 가로막습니다.</p>
+              <h3><span class="dot" aria-hidden="true"></span>확장 한계와 야외 대응 부재</h3>
+              <p>키오스크마다 고정 IP를 직접 등록해 개별 관리하는 종래의 사설망 방식은 확장성이 떨어집니다.</p>
             </div>
           </div>
+
+          <!-- Congestion widget -->
+          <div class="widget reveal" aria-label="서비스 센터 운영 혼잡도 시뮬레이터">
+            <div class="widget__head">
+              <strong>서비스 센터 운영 혼잡도 시뮬레이터 — 시간대를 옮겨 보세요</strong>
+              <span class="widget__tag" id="cg-label">오후 (보통)</span>
+            </div>
+            <label for="cg-slider" class="sr-only">시간대 선택 (1 오전 한산, 2 오후 보통, 3 퇴근 피크)</label>
+            <input type="range" min="1" max="3" value="2" id="cg-slider">
+            <div class="widget__scale" aria-hidden="true"><span>오전 (한산)</span><span>오후 (보통)</span><span>퇴근 (피크)</span></div>
+            <div class="metric-row">
+              <div class="metric"><div class="metric__num" id="cg-wait">8분</div><div class="metric__label">평균 대기 시간</div></div>
+              <div class="metric"><div class="metric__num" id="cg-loss">0.12%</div><div class="metric__label">키 분실·인계 사고율</div></div>
+              <div class="metric"><div class="metric__num" id="cg-risk">주의 (중)</div><div class="metric__label">원무 행정 피로도</div></div>
+            </div>
+            <p class="widget__note">※ 시연용 시나리오 수치입니다 — 실측 수치는 시범 운영(PoC) 단계에서 수집합니다. 전체 연동 데모는 <a href="dashboard.html">실시간 키오스크 데모</a>에서 확인할 수 있습니다.</p>
+          </div>
+
           <figure class="visual reveal">
-            <img src="assets/slide2.png" alt="수동 키 관리 vs 무인 키오스크 대조 장면" loading="lazy">
-            <figcaption>수동 키 관리 현장과 무인 키오스크 이용 장면 대조 (시안)</figcaption>
+            <img src="assets/slide2.png" alt="수작업 키 관리 데스크와 무인 키오스크 운영 비교 이미지" loading="lazy">
+            <figcaption>수작업 키 인수인계와 무인 키오스크 운영 비교 (시안)</figcaption>
           </figure>
         </div>
       </section>
@@ -410,16 +411,16 @@
       <section class="section" id="solution" aria-labelledby="solution-title">
         <div class="container">
           <p class="eyebrow">제안 구조</p>
-          <h2 class="section__title" id="solution-title">보관함 제어와 클라우드 서버 연동 구조</h2>
+          <h2 class="section__title" id="solution-title">보관함 제어와 클라우드 실시간 API 연동</h2>
           <p class="section__lead">
-            키오스크는 차량번호·비밀번호 입력 후 <strong>RS485/USB IO보드로 20개 보관함을 개별 제어</strong>합니다.
-            센서 데이터와 이용 이력은 HTTPS REST API / WebSocket으로 클라우드에 전송되며,
-            관리자 웹 대시보드에서 실시간 모니터링합니다.
+            21.5인치 FHD 터치스크린 입력은 로컬 RS485 IO 보드 및 USB 릴레이를 통해 20개 보관함을 개별 개방하며,
+            도어락 미닫힘 감지 센서는 실시간으로 하드웨어 상태를 스캔합니다.
+            수집된 모든 이력과 도어 락 상태는 <strong>클라우드 API를 타고 서버와 관리자 웹에 즉각 반영</strong>됩니다.
           </p>
 
           <div class="table-wrap reveal">
             <table class="cmp">
-              <caption class="sr-only">시스템 구성 요소별 역할과 데이터 인터페이스</caption>
+              <caption class="sr-only">KeyLocker 시스템 구성 요소와 역할, 인터페이스 비교</caption>
               <thead>
                 <tr>
                   <th scope="col">구성 요소</th>
@@ -429,77 +430,60 @@
               </thead>
               <tbody>
                 <tr>
-                  <th scope="row">21.5" 터치 키오스크 UI</th>
-                  <td>차량번호·PIN 입력, 단계별 안내 화면</td>
-                  <td>TOUCH INPUT</td>
+                  <th scope="row">터치 디스플레이 (입력 단말)</th>
+                  <td>차량번호 및 PIN 비밀번호 입력과 시나리오 처리</td>
+                  <td>TOUCH SCREEN</td>
                 </tr>
                 <tr>
-                  <th scope="row">RS485 / USB IO 보드</th>
-                  <td>20구 전자락 개별 제어</td>
-                  <td>GPIO / RS485</td>
+                  <th scope="row">RS485 / USB 릴레이 IO 보드</th>
+                  <td>20구 개별 보관함 전자락 잠금·해제 신호 전송</td>
+                  <td>RELAY BOARD</td>
                 </tr>
                 <tr>
-                  <th scope="row">도어 센서</th>
-                  <td>열림/닫힘·미닫힘 오류 감지</td>
-                  <td>SENSOR DATA</td>
-                </tr>
-                <tr>
-                  <th scope="row">클라우드 API 서버</th>
-                  <td>TLS 인증, 보관함 배정, 이력 저장</td>
+                  <th scope="row">클라우드 API &amp; 보안 모듈</th>
+                  <td>HTTPS/WebSocket을 통한 실시간 키 배정 및 원격 제어</td>
                   <td>HTTPS / WSS</td>
                 </tr>
                 <tr>
-                  <th scope="row">관리자 웹 대시보드</th>
-                  <td>상태 모니터링·원격 도어 제어</td>
-                  <td>WEB DASHBOARD</td>
+                  <th scope="row">실시간 웹 관제 대시보드</th>
+                  <td>원격 강제 개방 기능 및 장애 알림 모니터링</td>
+                  <td>DASHBOARD</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <p class="table__caption">&lt;표.1&gt; 시스템 구성 요소와 데이터 인터페이스 — 「실외용 키보관함 키오스크 제안서」 원문 기준</p>
+          <p class="table__caption">&lt;표.1&gt; 시스템 구성 요소 — 화면 입력부터 관제까지 하나의 데이터 흐름으로 이어집니다.</p>
 
-          <div class="flow reveal" role="img" aria-label="데이터 흐름: 터치 키오스크 UI에서 차량번호·PIN 입력, IO보드가 20구 전자락을 개별 제어, 도어 센서가 상태를 감지, 클라우드 API 서버가 이력을 저장, 관리자 웹 대시보드에서 실시간 모니터링">
+          <div class="flow reveal" role="img" aria-label="데이터 흐름: 터치 디스플레이 입력이 RS485 릴레이 보드로 전달되어 보관함을 개폐하고, 이력은 클라우드 API를 거쳐 웹 관제 대시보드에 반영">
             <div class="flow__node">
-              <span class="flow__pill">TOUCH INPUT</span>
-              <strong>21.5" 터치 키오스크 UI</strong>
-              <small>차량번호·PIN 입력 · 단계별 안내</small>
+              <span class="flow__pill">TOUCH SCREEN</span>
+              <strong>21.5" 터치 디스플레이</strong>
+              <small>차량번호 · PIN 입력, 시나리오 안내</small>
             </div>
             <div class="flow__arrow" aria-hidden="true">↓</div>
             <div class="flow__node flow__node--core">
-              <span class="flow__pill">GPIO / RS485</span>
-              <strong>RS485 / USB IO 보드</strong>
-              <small>20구 전자락 개별 제어 — 배정된 보관함만 개방</small>
-            </div>
-            <div class="flow__arrow" aria-hidden="true">↓</div>
-            <div class="flow__node">
-              <span class="flow__pill">SENSOR DATA</span>
-              <strong>도어 센서</strong>
-              <small>열림/닫힘·미닫힘 오류 감지 · 상태 업데이트</small>
+              <span class="flow__pill">RS485 · USB RELAY</span>
+              <strong>릴레이 IO 보드 + 20구 전자락 캐비닛</strong>
+              <small>개별 도어 잠금·해제 · 미닫힘 감지 센서 실시간 스캔</small>
             </div>
             <div class="flow__arrow" aria-hidden="true">↓</div>
             <div class="flow__node">
               <span class="flow__pill">HTTPS / WSS</span>
-              <strong>클라우드 API 서버</strong>
-              <small>TLS 인증 · 보관함 배정 · 이력 저장</small>
+              <strong>클라우드 API &amp; 보안 모듈</strong>
+              <small>실시간 키 배정 · 원격 제어 · 이력 보존</small>
             </div>
             <div class="flow__arrow" aria-hidden="true">↓</div>
             <div class="flow__node">
-              <span class="flow__pill">WEB DASHBOARD</span>
-              <strong>관리자 웹 대시보드</strong>
-              <small>실시간 상태 모니터링 · 원격 도어 제어</small>
+              <span class="flow__pill">DASHBOARD</span>
+              <strong>실시간 웹 관제 대시보드</strong>
+              <small>원격 강제 개방 · 장애 알림 모니터링</small>
             </div>
           </div>
-          <p class="flow__caption">&lt;그림.1&gt; 입력(키오스크)에서 제어(IO보드)·감지(센서)·기록(클라우드)·관제(대시보드)로 이어지는 데이터 흐름</p>
-
-          <div class="callout reveal">
-            <strong>보안 설계</strong> — 모든 API 호출은 TLS 암호화로 보호되고 장치 고유 토큰으로 인증됩니다.
-            차량번호와 비밀번호만 사용해 불필요한 개인정보를 저장하지 않으며,
-            관리자 강제 개방·설정 변경 시에는 이중 인증 절차로 권한을 확인합니다.
-          </div>
+          <p class="flow__caption">&lt;그림.1&gt; 화면 입력 → 물리 도어 제어 → 클라우드 이력 반영으로 이어지는 제어 흐름</p>
 
           <figure class="visual reveal">
-            <img src="assets/slide3.png" alt="키오스크·IO보드·클라우드 API 시스템 구성도" loading="lazy">
-            <figcaption>&lt;그림.2&gt; 키오스크·IO보드·클라우드 API 시스템 구성도 (시안)</figcaption>
+            <img src="assets/slide3.png" alt="하드웨어 및 네트워크 아키텍처 다이어그램" loading="lazy">
+            <figcaption>&lt;그림.2&gt; 하드웨어·네트워크 아키텍처 다이어그램 (시안)</figcaption>
           </figure>
         </div>
       </section>
@@ -507,105 +491,76 @@
       <!-- SCENARIO -->
       <section class="section section--alt" id="scenario" aria-labelledby="scenario-title">
         <div class="container">
-          <p class="eyebrow">UI/UX 시나리오</p>
-          <h2 class="section__title" id="scenario-title">차량키 맡기기·찾기 시나리오</h2>
+          <p class="eyebrow">이용 시나리오</p>
+          <h2 class="section__title" id="scenario-title">키오스크 화면 입력에 따른<br>실시간 캐비닛 도어 연동</h2>
           <p class="section__lead">
-            고객은 차량번호만으로 빈 보관함에 키를 맡기고, 정비 완료 후 <strong>문자로 받은 PIN</strong>으로 키를 찾습니다.
-            정비사는 차량번호 검색으로 보관함을 열어 작업 후 다시 보관할 수 있습니다.
+            사용자가 키오스크 단말에서 차량번호를 입력하면 클라우드가 비어있는 보관함을 즉각 선정하여 화면에 안내합니다.
+            동시에 물리 캐비닛 릴레이 신호를 받아 지정 보관함의 전자락이 즉시 해제되며,
+            <strong>고객 투입 감지 시 도어 상태가 실시간 동기화</strong>됩니다.
           </p>
-          <div class="card-grid">
+          <div class="card-grid card-grid--3">
             <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>차량키 맡기기</h3>
+              <h3><span class="dot" aria-hidden="true"></span>키 맡기기 (Deposit)</h3>
               <ol>
-                <li>차량번호 입력</li>
-                <li>빈 보관함 자동 배정</li>
-                <li>보관함 문 열림</li>
-                <li>키 투입 · 문 닫힘</li>
-                <li>접수 완료 — 서버에 이력 저장</li>
+                <li>차량번호 입력 · 확인</li>
+                <li>빈 보관함 자동 배정 · 전자락 해제</li>
+                <li>키 투입 후 도어 닫힘 감지</li>
+                <li>수령용 SMS 비밀번호 발송</li>
               </ol>
             </div>
             <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>차량키 찾기</h3>
+              <h3><span class="dot" aria-hidden="true"></span>키 찾기 (Pick Up)</h3>
               <ol>
-                <li>차량번호 입력</li>
-                <li>문자로 받은 PIN 입력</li>
-                <li>본인 확인</li>
-                <li>보관함 개방</li>
-                <li>키 수령 완료</li>
+                <li>차량번호 입력 · 보관함 조회</li>
+                <li>문자 수령 PIN 인증</li>
+                <li>지정 보관함 잠금 해제</li>
+                <li>키 수령 · 도어 닫힘으로 완료</li>
               </ol>
             </div>
             <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>정비사 메뉴</h3>
-              <p>차량번호 검색으로 해당 보관함을 열어 키를 가져가고, 작업 완료 후 다시 보관합니다. 고객용 PIN은 서버에서 발급됩니다.</p>
-            </div>
-            <div class="card reveal">
-              <h3><span class="dot" aria-hidden="true"></span>단계별 안내 · 상태 동기화</h3>
-              <p>상단 진행 표시와 큰 버튼으로 초보자도 쉽게 이용합니다. 키오스크와 대시보드는 동일 색상 규칙(초록: 대여 가능 · 주황: 대여 중 · 빨강: 열림)으로 상태를 표시합니다.</p>
+              <h3><span class="dot" aria-hidden="true"></span>정비사 회수 (Staff)</h3>
+              <ol>
+                <li>정비사 전용 권한 키 인증</li>
+                <li>대상 차량 검색 · 지정</li>
+                <li>보관함 개방 · 작업 개시</li>
+                <li>작업 후 재투입 · 이력 갱신</li>
+              </ol>
             </div>
           </div>
-
-          <div class="demo-panel reveal">
-            <div class="demo-panel__txt">
-              <strong>실시간 키오스크 데모</strong>
-              <span>맡기기·찾기·정비사 시나리오와 20구 관리자 대시보드를 브라우저에서 직접 조작해 볼 수 있습니다.</span>
-            </div>
-            <a class="btn btn--primary" href="dashboard.html">데모 열기</a>
+          <div class="callout reveal">
+            <strong>직접 조작해 보세요.</strong> 세 시나리오와 장애 상황(도어 미닫힘 오류)까지,
+            키오스크 화면과 20구 캐비닛 격자의 실시간 연동을 <a href="dashboard.html">실시간 키오스크 데모</a>에서 단계별로 확인할 수 있습니다.
           </div>
-
           <figure class="visual reveal">
-            <img src="assets/slide4.png" alt="차량키 맡기기·찾기 키오스크 UI 목업" loading="lazy">
-            <figcaption>차량키 맡기기·찾기 키오스크 UI 목업 (시안)</figcaption>
+            <img src="assets/slide4.png" alt="터치 UI 및 캐비닛 물리 연동 레이아웃 목업" loading="lazy">
+            <figcaption>터치 UI와 캐비닛 물리 연동 레이아웃 목업 (시안)</figcaption>
           </figure>
         </div>
       </section>
 
-      <!-- COMPARE -->
-      <section class="section" id="compare" aria-labelledby="compare-title">
+      <!-- DURABILITY -->
+      <section class="section" id="durability" aria-labelledby="durability-title">
         <div class="container">
-          <p class="eyebrow">도입 효과</p>
-          <h2 class="section__title" id="compare-title">수동 관리 vs. 자동화 키오스크</h2>
+          <p class="eyebrow">하드웨어 신뢰성</p>
+          <h2 class="section__title" id="durability-title">실외 가혹 환경 극복 및<br>도어 센서 실시간 스캔</h2>
           <p class="section__lead">
-            무인 키오스크는 전자락과 센서로 <strong>문 열림마다 로그를 남기고</strong>, 서버에서 상태를 실시간 관리합니다.
-            차량번호와 PIN만으로 키를 찾을 수 있어 대기 시간이 크게 줄어듭니다.
+            무인 차량 키 보관함 키오스크는 비바람과 직사광선이 쏟아지는 야외 환경에 노출됩니다.
+            아웃도어 환경에 맞춰 <strong>IP65 등급의 방수·방진 하우징과 온도 감지 냉각 팬</strong>을 장착하고,
+            강제로 도어 개방 시 관리자 비상 알림을 호출합니다.
           </p>
-          <div class="table-wrap reveal">
-            <table class="cmp">
-              <caption class="sr-only">수동 키 관리와 무인 키오스크 운영 방식 비교</caption>
-              <thead>
-                <tr>
-                  <th scope="col">항목</th>
-                  <th scope="col">수동 키 관리</th>
-                  <th scope="col">무인 키오스크</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">기록 방식</th>
-                  <td class="bad">종이 기록 · 분실 위험</td>
-                  <td class="good">디지털 로그 · 전자락</td>
-                </tr>
-                <tr>
-                  <th scope="row">키 수령 대기</th>
-                  <td class="bad">평균 10~15분</td>
-                  <td class="good">즉시 개방 (1분 이내)</td>
-                </tr>
-                <tr>
-                  <th scope="row">무인 시간</th>
-                  <td class="bad">서비스 불가</td>
-                  <td class="good">24시간 무인 운영</td>
-                </tr>
-                <tr>
-                  <th scope="row">관리 방식</th>
-                  <td class="bad">관리자 상주 필요</td>
-                  <td class="good">원격 모니터링·제어</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="card-grid">
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>IP65 방수·방진 설계 및 항온 섀시</h3>
+              <p>비와 미세먼지가 내부 전자부품에 도달하는 것을 차단하며, 혹서기 직사광선 아래에서도 원활히 동작합니다. 일반 실내용 태블릿 단말은 야외 배치 시 발열·터치 감도 저하로 오동작하기 쉽습니다.</p>
+            </div>
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>강제 개방 및 미닫힘 센서 알림</h3>
+              <p>승인되지 않은 도어 열림이나 미닫힘 상태가 장시간(60초) 지속되면 경보 알림을 전송합니다. 관리자 웹에서 원격 강제 개방으로 즉시 조치할 수 있습니다.</p>
+            </div>
           </div>
-          <p class="table__caption">&lt;표.2&gt; 운영 방식 비교 — 대기 시간 수치는 내부 운영 시나리오 기준이며, 실측 KPI는 1단계 PoC에서 확정합니다.</p>
           <figure class="visual reveal">
-            <img src="assets/slide5.png" alt="수동 관리 vs 자동화 키오스크 비교 인포그래픽" loading="lazy">
-            <figcaption>수동 관리 vs 자동화 키오스크 비교 인포그래픽 (시안)</figcaption>
+            <img src="assets/slide5.png" alt="환경 가혹도와 키오스크 내구성 비교 비주얼" loading="lazy">
+            <figcaption>실외 환경 가혹도와 키오스크 내구성 비교 (시안)</figcaption>
           </figure>
         </div>
       </section>
@@ -614,67 +569,124 @@
       <section class="section section--alt" id="roadmap" aria-labelledby="roadmap-title">
         <div class="container">
           <p class="eyebrow">도입 로드맵</p>
-          <h2 class="section__title" id="roadmap-title">시제품 PoC에서 전국 확장까지</h2>
+          <h2 class="section__title" id="roadmap-title">시제품 1대 실증부터<br>전국망 정비소 확대 보급까지</h2>
           <p class="section__lead">
-            1단계 시제품 PoC로 현장 검증 후, 2단계 40대 양산, 3단계 서비스센터·렌터카 업체 전국 확장을 제안합니다.
+            UI/UX 기획 및 데이터 연동 프로토타입 단계(현 단계)를 시작으로, 시제품(PoC) 1대를 조립하여 시범 센터에 구축하고
+            안정성을 확보한 후, <strong>40대 보급 양산과 전국 서비스 네트워크 제휴</strong> 단계로 확장합니다.
           </p>
           <div class="phase-grid">
             <div class="phase phase--now reveal">
               <span class="phase__no" aria-hidden="true">1</span>
-              <h3>1대 시제품 &amp; PoC <span class="when">· 현 단계</span></h3>
+              <h3>1대 시제품 조립 및 PoC <span class="when">6월 ~ 7월 · 현 단계</span></h3>
               <ul>
-                <li class="done">UI/UX 프로토타입 검토 — 완료</li>
-                <li class="done">키오스크 시나리오 시뮬레이션 검증 — 완료</li>
-                <li>하드웨어 시제품 제작</li>
-                <li>현장 PoC 테스트</li>
+                <li>화면 흐름 설계 및 UI 시뮬레이터 조율 완료</li>
+                <li>가상 시나리오 및 센서 도어 연동 검증</li>
+                <li>거점 정비소 1개 센터 시제품 시범 운영</li>
+                <li>실외 기후·환경 요인 신뢰성 데이터 축적</li>
               </ul>
             </div>
             <div class="phase reveal">
               <span class="phase__no" aria-hidden="true">2</span>
-              <h3>40대 양산 <span class="when">· PoC 후</span></h3>
+              <h3>40대 양산 및 관제 서버 상용화 <span class="when">8월 ~ 9월</span></h3>
               <ul>
-                <li>API 서버 정식 연동</li>
-                <li>관리자 대시보드 고도화</li>
-                <li>40대 양산 및 배포</li>
+                <li>HTTPS/TLS 클라우드 API 및 2중 인증 개통</li>
+                <li>원격 제어·미닫힘 장애 비상 경보 활성화</li>
+                <li>기기 40대 조립 및 정비센터 현장 보급</li>
+                <li>정비사 전용 웹 콘솔 및 권한 배정 연동</li>
               </ul>
             </div>
             <div class="phase reveal">
               <span class="phase__no" aria-hidden="true">3</span>
-              <h3>전국 서비스센터 확대 <span class="when">· 확장</span></h3>
+              <h3>전국망 확대 및 모바일 연동 <span class="when">10월 이후</span></h3>
               <ul>
-                <li>렌터카·정비 네트워크 확산</li>
-                <li>OTA 업데이트·다지점 통합 관리</li>
+                <li>대형 렌터카 및 광역 정비 인프라 제휴 확대</li>
+                <li>OTA 원격 업데이트 및 클라우드 유지보수</li>
               </ul>
             </div>
           </div>
           <figure class="visual reveal">
-            <img src="assets/slide6.png" alt="PoC·양산·전국 확장 로드맵 타임라인" loading="lazy">
-            <figcaption>PoC → 양산 → 전국 확장 로드맵 타임라인 (시안)</figcaption>
+            <img src="assets/slide6.png" alt="PoC 구축부터 양산, 전국 확대까지 로드맵 인포그래픽" loading="lazy">
+            <figcaption>프로젝트 단계별 로드맵 (시안)</figcaption>
           </figure>
         </div>
       </section>
 
+      <!-- EFFECT -->
+      <section class="section" id="effect" aria-labelledby="effect-title">
+        <div class="container">
+          <p class="eyebrow">기대 효과</p>
+          <h2 class="section__title" id="effect-title">이해관계자별 기대 효과</h2>
+          <div class="card-grid card-grid--3">
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>고객 만족도 향상</h3>
+              <p>정비 시간 전후 또는 야외 무인 환경에서도 대기 없이 비대면으로 키 보관 및 수령이 가능합니다.</p>
+            </div>
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>원무 데스크 운영 효율 증대</h3>
+              <p>키의 직접 인계가 불필요해지고, 단순 반납 수납의 무인화로 정비사와 데스크 직원의 단순 업무가 해소됩니다.</p>
+            </div>
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>보안 인프라 및 신뢰 구축</h3>
+              <p>도어 잠금·열림 기록의 실시간 스캔과 클라우드 API 이력 보존으로 분실 위험과 분쟁 소지를 제거합니다.</p>
+            </div>
+          </div>
+          <figure class="visual reveal">
+            <img src="assets/slide7.png" alt="고객 만족, 운영 효율, 보안 신뢰 세 가지 기대 효과 카드" loading="lazy">
+            <figcaption>도입 기대 효과 요약 (시안)</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- CUSTOMER CASE: VOLVO -->
+      <section class="section section--alt" id="case" aria-labelledby="case-title">
+        <div class="container">
+          <p class="eyebrow">고객 적용 사례</p>
+          <h2 class="section__title" id="case-title">프리미엄 브랜드 서비스센터 — VOLVO 무인 키 관리 적용</h2>
+          <p class="section__lead">
+            무인 차량 키 보관함은 단순 보관 장비를 넘어, 프리미엄 브랜드 오너에게 대기 없는 정비 경험을 제공하는 인프라입니다.
+            VOLVO 서비스센터 구성에서는 <strong>중앙 서버 없이 현장 단독으로 동작</strong>해 도입·유지 예산을 최소화하면서,
+            데스크 인력을 단순 키 인수인계에서 전문 정비 상담으로 재배치하고, 모든 도어락 이력을 로컬 보안 DB에 기록해
+            분실·귀책 분쟁을 구조적으로 방지합니다.
+          </p>
+          <div class="card-grid card-grid--3">
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>오너 정비 경험</h3>
+              <p>영업 외 시간·정비 피크 타임에도 대기 없이 비대면으로 차량 키를 수령·반납해, 프리미엄 브랜드에 기대되는 정비 편의를 제공합니다.</p>
+            </div>
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>서비스센터 생산성</h3>
+              <p>데스크 인력이 단순 키 인수인계에서 벗어나 전문 정비 상담에 집중해, 서비스센터 운영 생산성을 높입니다.</p>
+            </div>
+            <div class="card reveal">
+              <h3><span class="dot" aria-hidden="true"></span>브랜드 신뢰·분쟁 방지</h3>
+              <p>모든 도어락 이력을 로컬 보안 DB에 기록하고 실시간으로 스캔해, 키 분실·귀책 분쟁 소지를 차단합니다.</p>
+            </div>
+          </div>
+          <p class="table__caption">동일 구성은 브랜드·차종에 맞춰 화면 문구와 보관함 수량만 조정해 그대로 적용할 수 있습니다.</p>
+        </div>
+      </section>
+
       <!-- FAQ -->
-      <section class="section" id="faq" aria-labelledby="faq-title">
+      <section class="section section--alt" id="faq" aria-labelledby="faq-title">
         <div class="container">
           <p class="eyebrow">FAQ</p>
           <h2 class="section__title" id="faq-title">검토 단계에서 가장 자주 나오는 질문</h2>
           <div class="faq reveal">
             <details>
-              <summary>무인 시간에도 키를 맡기고 찾을 수 있나요?</summary>
-              <p class="a">네. 관리자 상주 없이 24시간 무인 운영됩니다. 고객은 차량번호로 키를 맡기고, 정비 완료 후 문자로 받은 PIN을 입력해 키를 찾습니다. 모든 인수인계 이력은 서버에 저장됩니다.</p>
+              <summary>야외에 바로 설치할 수 있나요?</summary>
+              <p class="a">네. 21.5인치 터치 디스플레이와 20구 보관함이 통합된 스탠드형 일체 단말이며, IP65 방수·방진 하우징과 온도 감지 냉각 팬을 갖춘 아웃도어 설계라 실외 배치가 가능합니다.</p>
             </details>
             <details>
-              <summary>보관함 제어와 이상 감지는 어떻게 하나요?</summary>
-              <p class="a">RS485 기반 IO보드 또는 USB 릴레이보드로 20구 전자락을 개별 제어합니다. 각 도어의 센서가 열림/닫힘과 미닫힘 오류를 감지해 상태를 갱신하며, 이상 상태는 관리자 웹 대시보드에 실시간 표시되고 원격으로 도어 테스트가 가능합니다.</p>
+              <summary>키 이력은 어떻게 관리되나요?</summary>
+              <p class="a">도어 잠금·열림 기록이 센서로 실시간 스캔되고, 모든 이력이 클라우드 API를 통해 서버와 관리자 웹에 보존됩니다. 분실 위험과 분쟁 소지를 기록으로 차단하는 구조입니다.</p>
             </details>
             <details>
-              <summary>네트워크·보안 구성은 어떻게 되나요?</summary>
-              <p class="a">키오스크는 HTTPS REST API / WebSocket으로 클라우드 서버와 통신합니다. 아웃바운드 연결로만 동작해 NAT 뒤에서도 현장 네트워크 설정이 간단합니다. 모든 API 호출은 TLS 암호화와 장치 고유 토큰으로 보호되며, 관리자 강제 개방 시 이중 인증을 거칩니다.</p>
+              <summary>보관함 문이 안 닫히는 등 장애가 나면 어떻게 되나요?</summary>
+              <p class="a">미닫힘 상태가 60초 이상 지속되거나 승인되지 않은 도어 열림이 감지되면 관리자에게 경보 알림이 전송되고, 웹 관제 대시보드에서 원격 강제 개방 등으로 조치할 수 있습니다. 장애 상황 시뮬레이션은 <a href="dashboard.html" style="color:var(--accent)">실시간 키오스크 데모</a>에서 확인할 수 있습니다.</p>
             </details>
             <details>
               <summary>도입 비용과 일정은 어떻게 되나요?</summary>
-              <p class="a">1단계는 1대 시제품 제작과 현장 PoC로 시작합니다. UI/UX 프로토타입과 시나리오 시뮬레이션 검증은 완료된 상태이며, 세부 견적과 일정은 미팅에서 설치 환경·수량 기준으로 산정해 드립니다. 양산 규모는 PoC 결과를 근거로 협의합니다.</p>
+              <p class="a">1단계로 시제품 1대를 거점 정비소 1개 센터에 시범 구축(6~7월)하고, 검증 후 40대 양산 보급(8~9월), 전국망 확대(10월 이후)로 진행합니다. 세부 견적과 일정은 미팅에서 센터 규모 기준으로 산정해 드립니다.</p>
             </details>
           </div>
         </div>
@@ -683,14 +695,13 @@
       <!-- CTA -->
       <section class="cta" id="cta" aria-labelledby="cta-title">
         <div class="container">
-          <p class="eyebrow">도입 검토팀을 위한 다음 단계</p>
-          <h2 class="cta__title" id="cta-title">1대 시제품 PoC로<br>현장에서 먼저 검증하시죠</h2>
+          <p class="eyebrow">정비소·서비스센터를 위한 다음 단계</p>
+          <h2 class="cta__title" id="cta-title">시제품 1대 시범 운영으로<br>현장에서 직접 확인하시죠</h2>
           <p class="cta__lead">
-            UI/UX 프로토타입과 키오스크 시나리오 시뮬레이션은 준비되어 있습니다.
-            하드웨어 시제품 제작과 현장 PoC 일정은 미팅에서 협의합니다.
+            화면 흐름과 센서 도어 연동 검증은 끝났습니다 — 거점 센터 1곳 시범 운영으로 실외 신뢰성 데이터를 함께 확인하시면 됩니다.
           </p>
           <div class="cta__btns">
-            <a class="btn btn--primary" href="mailto:mkt@aicube.co.kr?subject=%EB%AC%B4%EC%9D%B8%20%ED%82%A4%20%EB%B3%B4%EA%B4%80%ED%95%A8%20%ED%82%A4%EC%98%A4%EC%8A%A4%ED%81%AC%20%EC%A0%9C%EC%95%88%20%EB%AF%B8%ED%8C%85%20%EC%9A%94%EC%B2%AD">미팅 일정 잡기</a>
+            <a class="btn btn--primary" href="mailto:mkt@aicube.co.kr?subject=%EB%AC%B4%EC%9D%B8%20%EC%B0%A8%EB%9F%89%20%ED%82%A4%20%EB%B3%B4%EA%B4%80%ED%95%A8%20%ED%82%A4%EC%98%A4%EC%8A%A4%ED%81%AC%20%EC%A0%9C%EC%95%88%20%EB%AF%B8%ED%8C%85%20%EC%9A%94%EC%B2%AD">미팅 일정 잡기</a>
             <a class="btn btn--ghost" href="dashboard.html">실시간 키오스크 데모 보기</a>
           </div>
           <p class="cta__note">제안사: 에이아이큐브(AICube) · 문의 mkt@aicube.co.kr</p>
@@ -703,9 +714,9 @@
       <div class="container">
         <h4>근거 및 참고</h4>
         <ul>
-          <li>운영 수치(수동 관리 평균 대기 10~15분, 키오스크 1분 이내 개방)는 내부 운영 시나리오 기준 가정치이며, 실측 KPI는 1단계 PoC에서 확정합니다.</li>
-          <li>하드웨어 사양(21.5인치 FHD 터치, 20구 전자락·도어 센서, RS485/USB IO보드)과 시스템 구성은 「실외용 키보관함 키오스크 제안서」 원문을 따릅니다.</li>
-          <li>본 페이지의 제품 이미지는 3D 렌더링 시안이며, 시제품 제작 후 실물 촬영본으로 교체합니다.</li>
+          <li>평균 대기 시간·키 분실/인계 사고율 등 혼잡도 수치는 시연용 시뮬레이터 시나리오 값이며, 실측 수치는 시범 운영(PoC) 단계에서 수집합니다.</li>
+          <li>하드웨어 사양·시스템 구성·로드맵은 「무인 차량 키 보관함 키오스크 도입 제안서」 원문을 따릅니다.</li>
+          <li>본문 렌더링·목업 이미지는 시안이며, 시제품 단계에서 실촬영본으로 교체됩니다.</li>
         </ul>
         <p class="footer__copy">© <span id="year"></span> AICube · 본 자료는 제안 목적의 대외비 문서입니다. <a href="dashboard.html">실시간 키오스크 데모 보기</a></p>
       </div>
@@ -717,8 +728,8 @@
     "use strict";
 
     // ===== PIN gate (dashboard.html과 동일 세션 키 — 한쪽에서 인증하면 양쪽 모두 열람) =====
-    var PASSWORD = "4342";
-    var SESSION_KEY = "keylocker_proposal_auth";
+    var GATE_PASSWORD = "4342";
+    var STORAGE_KEY = "keylocker_proposal13_auth";
     var gate = document.getElementById("gate");
     var content = document.getElementById("content");
     var input = document.getElementById("gate-input");
@@ -731,12 +742,12 @@
       var first = content.querySelector("a, button");
       if (first) first.focus();
       if (fire && typeof window.va === "function") {
-        window.va("event", { name: "proposal_unlocked", data: {} });
+        window.va("event", { name: "proposal_unlocked", data: { source: "gate_submit" } });
       }
       initWidgets();
     }
 
-    if (sessionStorage.getItem(SESSION_KEY) === "ok") {
+    if (sessionStorage.getItem(STORAGE_KEY) === "ok") {
       unlock(false);
     } else {
       document.body.style.overflow = "hidden";
@@ -753,8 +764,8 @@
     }
 
     function verify(val) {
-      if (val === PASSWORD) {
-        sessionStorage.setItem(SESSION_KEY, "ok");
+      if (val === GATE_PASSWORD) {
+        sessionStorage.setItem(STORAGE_KEY, "ok");
         errorEl.textContent = "";
         unlock(true);
       } else {
@@ -788,6 +799,25 @@
       var yearEl = document.getElementById("year");
       if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+      // ===== Congestion simulator widget (기존 슬라이드 2 수치 그대로) =====
+      var slider = document.getElementById("cg-slider");
+      if (slider) {
+        var levels = {
+          1: { label: "오전 (한산)", wait: "3분", loss: "0.02%", risk: "안정 (하)" },
+          2: { label: "오후 (보통)", wait: "8분", loss: "0.12%", risk: "주의 (중)" },
+          3: { label: "퇴근 (피크)", wait: "18분", loss: "0.35%", risk: "혼잡 (상)" }
+        };
+        var render = function () {
+          var lv = levels[slider.value] || levels[2];
+          document.getElementById("cg-label").textContent = lv.label;
+          document.getElementById("cg-wait").textContent = lv.wait;
+          document.getElementById("cg-loss").textContent = lv.loss;
+          document.getElementById("cg-risk").textContent = lv.risk;
+        };
+        slider.addEventListener("input", render);
+        render();
+      }
+
       // ===== Reveal on scroll =====
       if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         var io = new IntersectionObserver(function (entries) {
@@ -805,7 +835,7 @@
     }
   })();
   </script>
-  <!-- Vercel Web Analytics -->
+  <!-- Vercel Web Analytics 수집 스크립트 -->
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
